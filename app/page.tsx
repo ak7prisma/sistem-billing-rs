@@ -27,7 +27,7 @@ export default function LandingPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+    <main className="min-h-screen flex flex-col items-center justify-center p-6">
       <div className="max-w-5xl w-full text-center space-y-12">
         <div className="space-y-4">
           <div className="flex justify-center mb-6">

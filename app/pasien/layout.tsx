@@ -18,7 +18,7 @@ export default function PasienLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       {/* Desktop Navbar */}
       <nav className="bg-white px-4 md:px-8 py-4 shadow-sm flex justify-between items-center border-b border-slate-200 sticky top-0 z-50">
         <div className="flex items-center gap-3 w-auto md:w-48">

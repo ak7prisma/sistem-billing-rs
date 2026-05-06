@@ -34,7 +34,7 @@ export default function ReceiptPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 p-4 md:p-10 flex flex-col items-center gap-6 font-mono">
+    <div className="min-h-screen p-4 md:p-10 flex flex-col items-center gap-6 font-mono">
       <div className="no-print flex flex-col sm:flex-row gap-3 md:gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-200 w-full max-w-sm sm:max-w-none justify-center font-sans">
         <Link 
           href="/pasien/history" 
