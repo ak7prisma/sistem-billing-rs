@@ -22,6 +22,7 @@ import {
   Area,
   Cell
 } from "recharts";
+import PageHeader from "@/components/shared/PageHeader";
 
 const DATA_REVENUE = [
   { name: "Senin", total: 4500000 },
@@ -61,21 +62,18 @@ export default function ManagerDashboard() {
 
   return (
     <div className="space-y-10 pb-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h2 className="text-3xl font-black text-slate-900 tracking-tight">Financial <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Analytics</span></h2>
-          <p className="text-slate-500 font-medium text-sm mt-1">Laporan performa keuangan rumah sakit real-time.</p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 shadow-sm hover:bg-slate-50 transition">
-            <FiCalendar /> 7 Hari Terakhir
-          </button>
-          <button className="bg-slate-900 text-white p-2.5 rounded-xl shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition">
-            <FiFilter size={18} />
-          </button>
-        </div>
-      </div>
+      <PageHeader 
+        title="Financial Analytics" 
+        subtitle="Laporan performa keuangan rumah sakit real-time."
+        badge="Live"
+      >
+        <button className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-[10px] font-black text-slate-600 shadow-sm hover:bg-slate-50 transition uppercase tracking-widest">
+          <FiCalendar /> 7 Hari Terakhir
+        </button>
+        <button className="bg-slate-900 text-white p-2.5 rounded-xl shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition">
+          <FiFilter size={18} />
+        </button>
+      </PageHeader>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
@@ -96,9 +94,9 @@ export default function ManagerDashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-          <div className="flex justify-between items-center">
-            <h3 className="font-black text-slate-800 uppercase tracking-tight text-sm">Tren Pendapatan Mingguan</h3>
-            <span className="text-[10px] font-bold text-slate-400">MAY 2024</span>
+          <div className="flex justify-between items-center border-b border-slate-50 pb-4">
+            <h3 className="font-black text-slate-800 uppercase tracking-tight text-xs">Tren Pendapatan Mingguan</h3>
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Revenue Growth</span>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -111,9 +109,9 @@ export default function ManagerDashboard() {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} tickFormatter={(value) => `Rp ${value/1000000}M`} />
+                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} tickFormatter={(value) => `${value/1000000}M`} />
                 <Tooltip 
-                  contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '12px'}}
+                  contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px'}}
                   formatter={(value: any) => [`Rp ${value.toLocaleString()}`, 'Total']}
                 />
                 <Area type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
@@ -123,9 +121,9 @@ export default function ManagerDashboard() {
         </div>
 
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
-          <div className="flex justify-between items-center">
-            <h3 className="font-black text-slate-800 uppercase tracking-tight text-sm">Distribusi Billing Per Poli</h3>
-            <span className="text-[10px] font-bold text-slate-400">LAST 30 DAYS</span>
+          <div className="flex justify-between items-center border-b border-slate-50 pb-4">
+            <h3 className="font-black text-slate-800 uppercase tracking-tight text-xs">Distribusi Billing Per Poli</h3>
+            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Department Share</span>
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
@@ -135,7 +133,7 @@ export default function ManagerDashboard() {
                 <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} />
                 <Tooltip 
                    cursor={{fill: '#f8fafc'}}
-                   contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '12px'}}
+                   contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px'}}
                 />
                 <Bar dataKey="count" radius={[10, 10, 0, 0]} barSize={40}>
                   {DATA_POLI.map((entry, index) => (
@@ -148,15 +146,15 @@ export default function ManagerDashboard() {
         </div>
       </div>
 
-      <div className="bg-slate-900 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden">
-        <div className="relative z-10 space-y-4 md:max-w-md">
-          <h3 className="text-2xl font-black leading-tight">Siapkan Laporan Bulanan Anda.</h3>
-          <p className="text-slate-400 text-sm font-medium">Export data keuangan terkonsolidasi ke dalam format PDF atau Excel secara instan.</p>
-          <button className="bg-white text-slate-900 px-8 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition shadow-xl">
-            Download Report
+      <div className="bg-slate-900 rounded-[3rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl">
+        <div className="relative z-10 space-y-5 md:max-w-md">
+          <h3 className="text-3xl font-black leading-none uppercase tracking-tighter">Export <br/>Financial Data</h3>
+          <p className="text-slate-400 text-xs font-bold leading-relaxed uppercase tracking-widest opacity-80">Download rekapitulasi data keuangan dalam format PDF atau Excel secara instan untuk kebutuhan audit.</p>
+          <button className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 transition shadow-xl hover:scale-105 active:scale-95">
+            Download Report Now
           </button>
         </div>
-        <FiFileText className="absolute right-[-20px] bottom-[-20px] text-white/5 w-64 h-64 transform rotate-12" />
+        <FiFileText className="absolute right-[-40px] bottom-[-40px] text-white/5 w-80 h-80 transform rotate-12" />
       </div>
     </div>
   );

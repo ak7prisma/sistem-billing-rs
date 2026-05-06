@@ -6,6 +6,7 @@ import { MOCK_TAGIHAN } from "@/lib/service/billing";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ReceiptModal from "@/components/billing/ReceiptModal";
 import { Tagihan } from "@/lib/types";
+import PageHeader from "@/components/shared/PageHeader";
 
 export default function LaporanManager() {
   const [search, setSearch] = useState("");
@@ -32,21 +33,18 @@ export default function LaporanManager() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Laporan <span className="text-blue-600">Transaksi</span></h2>
-          <p className="text-slate-500 font-medium text-sm mt-1">Audit dan rekapitulasi data pembayaran pasien.</p>
-        </div>
-        
-        <div className="flex items-center gap-3 w-full md:w-auto">
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 px-6 py-3 rounded-2xl text-xs font-black text-slate-600 shadow-sm hover:bg-slate-50 transition uppercase tracking-widest">
-            <FiDownload /> Export PDF
-          </button>
-          <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl text-xs font-black shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition uppercase tracking-widest">
-            <FiCalendar /> Filter Tanggal
-          </button>
-        </div>
-      </div>
+      <PageHeader 
+        title="Laporan Transaksi" 
+        subtitle="Audit dan rekapitulasi data pembayaran pasien."
+        badge="Audit Mode"
+      >
+        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 px-6 py-3 rounded-2xl text-[10px] font-black text-slate-600 shadow-sm hover:bg-slate-50 transition uppercase tracking-[0.2em]">
+          <FiDownload /> Export PDF
+        </button>
+        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-2xl text-[10px] font-black shadow-lg shadow-blue-600/20 hover:bg-blue-700 transition uppercase tracking-[0.2em]">
+          <FiCalendar /> Filter
+        </button>
+      </PageHeader>
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1 group">

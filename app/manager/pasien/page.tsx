@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { FiSearch, FiUser, FiActivity, FiMapPin } from "react-icons/fi";
+import { FiSearch, FiUser, FiActivity, FiMapPin, FiPlus } from "react-icons/fi";
+import PageHeader from "@/components/shared/PageHeader";
 
 const MOCK_PASIEN = [
   { id: "P-001", rm: "00-11-22", nama: "Budi Santoso", tipe: "BPJS", lastVisit: "01 Mei 2024", totalBill: "Rp 750.000" },
@@ -20,12 +21,15 @@ export default function PasienManager() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-        <div>
-          <h2 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Database <span className="text-blue-600">Pasien</span></h2>
-          <p className="text-slate-500 font-medium text-sm mt-1">Kelola data identitas dan histori kunjungan pasien.</p>
-        </div>
-      </div>
+      <PageHeader 
+        title="Database Pasien" 
+        subtitle="Kelola data identitas dan histori kunjungan pasien."
+        badge="Master Data"
+      >
+        <button className="bg-slate-900 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition flex items-center gap-2">
+          <FiPlus /> Tambah Pasien
+        </button>
+      </PageHeader>
 
       <div className="relative group">
         <FiSearch className="absolute left-4 top-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
@@ -38,10 +42,10 @@ export default function PasienManager() {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredPasien.map((p) => (
           <div key={p.id} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row gap-6 items-center md:items-start group">
-            <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center text-slate-400 group-hover:bg-blue-50 group-hover:text-blue-500 transition-colors">
+            <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-300 group-hover:bg-blue-600 group-hover:text-white transition-all shadow-inner">
               <FiUser size={32} />
             </div>
             
@@ -53,7 +57,7 @@ export default function PasienManager() {
                     {p.tipe}
                   </span>
                 </div>
-                <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">RM: {p.rm}</p>
+                <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.2em]">RM: {p.rm}</p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -61,17 +65,17 @@ export default function PasienManager() {
                   <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1 justify-center md:justify-start">
                     <FiActivity /> Terakhir
                   </p>
-                  <p className="text-xs font-bold text-slate-600">{p.lastVisit}</p>
+                  <p className="text-xs font-bold text-slate-600 uppercase">{p.lastVisit}</p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest flex items-center gap-1 justify-center md:justify-start">
                     <FiMapPin /> Total Billing
                   </p>
-                  <p className="text-xs font-bold text-blue-600">{p.totalBill}</p>
+                  <p className="text-xs font-black text-blue-600">{p.totalBill}</p>
                 </div>
               </div>
 
-              <button className="w-full bg-slate-50 hover:bg-slate-900 hover:text-white py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all">
+              <button className="w-full bg-slate-900 text-white py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:bg-blue-600 shadow-lg shadow-slate-900/10 active:scale-95">
                 Lihat Profil Lengkap
               </button>
             </div>
