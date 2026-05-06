@@ -1,6 +1,5 @@
 import React from "react";
-import Link from "next/link";
-import { FiFileText, FiChevronRight } from "react-icons/fi";
+import { FiFileText, FiChevronRight, FiSearch } from "react-icons/fi";
 import { Tagihan } from "@/lib/types";
 import StatusBadge from "../ui/StatusBadge";
 
@@ -8,9 +7,10 @@ interface InvoiceCardProps {
   tagihan: Tagihan;
   showPayButton?: boolean;
   onPay?: (id: string) => void;
+  onViewDetail?: (id: string) => void;
 }
 
-const InvoiceCard: React.FC<InvoiceCardProps> = ({ tagihan, showPayButton, onPay }) => {
+const InvoiceCard: React.FC<InvoiceCardProps> = ({ tagihan, showPayButton, onPay, onViewDetail }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -41,16 +41,16 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ tagihan, showPayButton, onPay
             {formatCurrency(tagihan.total_biaya)}
           </div>
           <div className="flex gap-3 w-full md:w-auto">
-            <Link
-              href={`/pasien/invoice/${tagihan.id}`}
-              className="flex-1 md:flex-none text-center px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+            <button
+              onClick={() => onViewDetail?.(tagihan.id)}
+              className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 border border-slate-200 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
             >
-              Cek Detail
-            </Link>
+              <FiSearch size={14} /> {tagihan.status === 'lunas' ? 'Lihat Struk' : 'Cek Detail'}
+            </button>
             {showPayButton && tagihan.status === "pending" && (
               <button
                 onClick={() => onPay?.(tagihan.id)}
-                className="flex-1 md:flex-none bg-gradient-to-r from-emerald-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 transition shadow-sm"
+                className="flex-1 md:flex-none bg-gradient-to-r from-emerald-500 to-violet-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:opacity-90 transition shadow-sm uppercase tracking-wider"
               >
                 Bayar
               </button>
@@ -58,8 +58,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ tagihan, showPayButton, onPay
           </div>
         </div>
       </div>
-
-      {/* Decorative Arrow */}
+      
       <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 group-hover:right-2 transition-all text-slate-300 hidden md:block">
         <FiChevronRight className="w-6 h-6" />
       </div>

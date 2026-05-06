@@ -2,12 +2,18 @@
 
 import { useState } from "react";
 import { FiCheckCircle } from "react-icons/fi";
-import { MOCK_TAGIHAN } from "@/lib/service/billing";
+import { MOCK_TAGIHAN, getTagihanById } from "@/lib/service/billing";
 import InvoiceCard from "@/components/billing/InvoiceCard";
 import ActiveInvoiceCard from "@/components/billing/ActiveInvoiceCard";
+import InvoiceModal from "@/components/billing/InvoiceModal";
+import ReceiptModal from "@/components/billing/ReceiptModal";
+import { Tagihan } from "@/lib/types";
 
 export default function PasienHome() {
   const [isPaid, setIsPaid] = useState(false);
+  const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
+  const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   
   const activeBill = MOCK_TAGIHAN.find(t => t.status === "pending");
   const recentHistory = MOCK_TAGIHAN.filter(t => t.status !== "pending").slice(0, 2);
@@ -15,6 +21,18 @@ export default function PasienHome() {
   const handlePay = (id: string) => {
     if (confirm(`Lanjutkan pembayaran ${id} menggunakan QRIS?`)) {
       setIsPaid(true);
+    }
+  };
+
+  const handleViewDetail = (id: string) => {
+    const data = getTagihanById(id);
+    if (data) {
+      setSelectedTagihan(data);
+      if (data.status === 'lunas') {
+        setIsReceiptModalOpen(true);
+      } else {
+        setIsInvoiceModalOpen(true);
+      }
     }
   };
 
@@ -31,6 +49,7 @@ export default function PasienHome() {
         <ActiveInvoiceCard 
           tagihan={activeBill} 
           onPay={() => handlePay(activeBill.id)} 
+          onViewDetail={handleViewDetail}
         />
       ) : isPaid ? (
         <div className="bg-emerald-50 p-6 md:p-8 rounded-2xl border border-emerald-200 flex items-center shadow-md gap-4 animate-in fade-in zoom-in duration-500">
@@ -52,10 +71,28 @@ export default function PasienHome() {
         <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-4 md:mb-6 border-b border-slate-100 pb-2">Riwayat Terakhir</h3>
         <div className="space-y-4">
           {recentHistory.map((tagihan) => (
-            <InvoiceCard key={tagihan.id} tagihan={tagihan} />
+            <InvoiceCard 
+              key={tagihan.id} 
+              tagihan={tagihan} 
+              onViewDetail={handleViewDetail}
+            />
           ))}
         </div>
       </div>
+
+      <InvoiceModal 
+        isOpen={isInvoiceModalOpen}
+        onClose={() => setIsInvoiceModalOpen(false)}
+        tagihan={selectedTagihan}
+        onConfirmPayment={handlePay}
+        role="pasien"
+      />
+
+      <ReceiptModal 
+        isOpen={isReceiptModalOpen}
+        onClose={() => setIsReceiptModalOpen(false)}
+        tagihan={selectedTagihan}
+      />
     </div>
   );
 }

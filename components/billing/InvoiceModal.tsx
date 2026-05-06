@@ -1,0 +1,111 @@
+import React from "react";
+import { FiX, FiActivity, FiCreditCard, FiPrinter, FiShield } from "react-icons/fi";
+import { Tagihan } from "@/lib/types";
+import BillingBreakdown from "./BillingBreakdown";
+import StatusBadge from "../ui/StatusBadge";
+
+interface InvoiceModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  tagihan: Tagihan | null;
+  onConfirmPayment?: (id: string) => void;
+  role: "pasien" | "kasir";
+}
+
+const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, onConfirmPayment, role }) => {
+  if (!isOpen || !tagihan) return null;
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
+      <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
+      
+      <div className="relative bg-white w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-3xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-300">
+        <div className="p-6 md:p-8 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-tr from-emerald-500 to-violet-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <FiActivity className="text-white w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight">Rincian <span className="text-violet-600">Invoice</span></h2>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{tagihan.id}</p>
+            </div>
+          </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
+            <FiX size={24} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="space-y-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pasien</p>
+              <h3 className="text-lg font-bold text-slate-800">Budi Santoso</h3>
+              <p className="text-xs text-slate-500">RM: 00-12-34-56 • BPJS Kesehatan</p>
+            </div>
+            <div className="space-y-1 md:text-right">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Layanan</p>
+              <h3 className="text-lg font-bold text-slate-800">{tagihan.poli}</h3>
+              <p className="text-xs text-slate-500">{tagihan.tanggal}</p>
+            </div>
+          </div>
+
+          <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+            <BillingBreakdown rincian={tagihan.rincian} tipePenjamin="bpjs" />
+          </div>
+        </div>
+
+        <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="text-center md:text-left">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Iur Biaya</p>
+            <div className="text-3xl font-black text-violet-600 tracking-tighter">
+              {formatCurrency(tagihan.total_biaya)}
+            </div>
+          </div>
+          
+          <div className="flex gap-3 w-full md:w-auto">
+            <button 
+              onClick={onClose}
+              className="flex-1 md:flex-none px-6 py-3 border border-slate-200 rounded-xl font-bold text-slate-600 hover:bg-white transition"
+            >
+              Batal
+            </button>
+            
+            {tagihan.status === "pending" && (
+              role === "kasir" ? (
+                <button 
+                  onClick={() => onConfirmPayment?.(tagihan.id)}
+                  className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-slate-900 text-white px-8 py-3 rounded-xl font-black shadow-lg hover:bg-slate-800 transition uppercase text-xs tracking-wider"
+                >
+                  <FiShield size={18} /> Konfirmasi Bayar
+                </button>
+              ) : (
+                <button 
+                  onClick={() => onConfirmPayment?.(tagihan.id)}
+                  className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-violet-500 text-white px-8 py-3 rounded-xl font-black shadow-lg shadow-violet-500/20 hover:scale-105 transition uppercase text-xs tracking-wider"
+                >
+                  <FiCreditCard size={18} /> Bayar Sekarang
+                </button>
+              )
+            )}
+
+            {tagihan.status !== "pending" && (
+              <button className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-slate-800 text-white px-8 py-3 rounded-xl font-black shadow-lg hover:bg-slate-700 transition uppercase text-xs tracking-wider">
+                <FiPrinter size={18} /> Cetak Struk
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default InvoiceModal;
