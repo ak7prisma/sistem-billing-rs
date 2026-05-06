@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { FiActivity, FiGrid, FiFileText, FiPieChart, FiSettings, FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import RoleGuard from "@/components/layout/RoleGuard";
 
 export default function KasirLayout({
   children,
@@ -23,7 +24,8 @@ export default function KasirLayout({
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
 
   return (
-    <div className="flex flex-col md:flex-row h-screen overflow-hidden text-slate-800">
+    <RoleGuard allowedRoles={["kasir"]}>
+      <div className="flex flex-col md:flex-row h-screen overflow-hidden text-slate-800">
       {/* Mobile Top Header */}
       <header className="md:hidden bg-slate-900 p-4 flex justify-between items-center z-30 shadow-md">
         <div className="flex items-center gap-3">
@@ -99,5 +101,6 @@ export default function KasirLayout({
         {children}
       </main>
     </div>
+    </RoleGuard>
   );
 }

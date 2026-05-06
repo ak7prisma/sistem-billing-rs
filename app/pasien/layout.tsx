@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiHome, FiClock, FiInfo, FiActivity, FiLogOut } from "react-icons/fi";
+import { FiHome, FiClock, FiInfo, FiActivity } from "react-icons/fi";
+import RoleGuard from "@/components/layout/RoleGuard";
 
 export default function PasienLayout({
   children,
@@ -18,7 +19,8 @@ export default function PasienLayout({
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <RoleGuard allowedRoles={["pasien"]}>
+      <div className="min-h-screen flex flex-col">
       {/* Desktop Navbar */}
       <nav className="bg-white px-4 md:px-8 py-4 shadow-sm flex justify-between items-center border-b border-slate-200 sticky top-0 z-50">
         <div className="flex items-center gap-3 w-auto md:w-48">
@@ -81,5 +83,6 @@ export default function PasienLayout({
         {children}
       </main>
     </div>
+    </RoleGuard>
   );
 }
