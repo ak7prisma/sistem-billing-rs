@@ -7,7 +7,8 @@ import {
   FiUsers, 
   FiActivity,
   FiCalendar,
-  FiFilter
+  FiFilter,
+  FiFileText
 } from "react-icons/fi";
 import { 
   BarChart, 
