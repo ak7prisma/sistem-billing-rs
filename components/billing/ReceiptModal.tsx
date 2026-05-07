@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FiX, FiPrinter, FiArrowLeft } from "react-icons/fi";
-import { Tagihan } from "@/lib/types";
+import { Tagihan, RincianTagihan, Pasien } from "@/lib/types";
+import { getRinciTagihanByTagihan, getData } from "@/lib/firebase/firestore";
 
 interface ReceiptModalProps {
   isOpen: boolean;
@@ -10,12 +11,38 @@ interface ReceiptModalProps {
 
 const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, tagihan }) => {
   const [currentDate, setCurrentDate] = useState("");
+  const [rincian, setRincian] = useState<RincianTagihan[]>([]);
+  const [pasien, setPasien] = useState<Pasien | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && tagihan) {
       setCurrentDate(new Date().toLocaleString("id-ID"));
+      fetchData();
     }
-  }, [isOpen]);
+  }, [isOpen, tagihan]);
+
+  const fetchData = async () => {
+    if (!tagihan) return;
+    setLoading(true);
+    try {
+      // Fetch Pasien
+      const pData = await getData("pasien", tagihan.pasien_id) as Pasien;
+      setPasien(pData);
+
+      // Fetch Rincian
+      if (tagihan.rincian && tagihan.rincian.length > 0) {
+        setRincian(tagihan.rincian);
+      } else {
+        const data = await getRinciTagihanByTagihan(tagihan.id_tagihan);
+        setRincian(data);
+      }
+    } catch (err) {
+      console.error("Gagal memuat rincian struk:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!isOpen || !tagihan) return null;
 
@@ -62,7 +89,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, tagihan })
             </div>
             <div className="flex justify-between">
               <span className="text-slate-400">Pas:</span>
-              <span className="font-bold uppercase">Budi Santoso</span>
+              <span className="font-bold uppercase truncate ml-2">{pasien?.nama || "..."}</span>
             </div>
           </div>
 
@@ -74,7 +101,11 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, tagihan })
               </tr>
             </thead>
             <tbody className="divide-y divide-dashed divide-slate-100">
-              {tagihan.rincian.map((item) => (
+              {loading ? (
+                <tr>
+                  <td colSpan={2} className="py-4 text-center text-[9px] text-slate-400 animate-pulse uppercase font-black">Memuat Data...</td>
+                </tr>
+              ) : rincian.map((item) => (
                 <tr key={item.id_rincian}>
                   <td className="py-2 text-slate-600 max-w-[150px] break-words">{item.nama_layanan}</td>
                   <td className="text-right py-2 font-bold tracking-tighter text-[12px]">
