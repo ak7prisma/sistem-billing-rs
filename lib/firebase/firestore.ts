@@ -138,3 +138,36 @@ export const getAllPembayaran = async () => {
     ...doc.data() 
   } as Pembayaran));
 };
+
+export const getAllPasien = async () => {
+  const pasienSnap = await getDocs(query(collection(db, "pasien"), orderBy("nama", "asc")));
+  const usersSnap = await getDocs(query(collection(db, "users"), where("role", "==", "pasien")));
+  
+  const usersMap = new Map();
+  usersSnap.forEach(doc => usersMap.set(doc.id, doc.data()));
+
+  return pasienSnap.docs.map(doc => {
+    const data = doc.data();
+    const userData = usersMap.get(doc.id) || {};
+    return { 
+      id: doc.id,
+      ...data,
+      ...userData 
+    } as Pasien;
+  });
+};
+
+export const getPasienDetail = async (id: string) => {
+  const [pasienSnap, userSnap] = await Promise.all([
+    getDoc(doc(db, "pasien", id)),
+    getDoc(doc(db, "users", id))
+  ]);
+
+  if (!pasienSnap.exists()) return null;
+
+  return {
+    id: pasienSnap.id,
+    ...pasienSnap.data(),
+    ...(userSnap.exists() ? userSnap.data() : {})
+  } as Pasien;
+};

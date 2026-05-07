@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FiSearch, FiFilter, FiDownload, FiEye, FiCalendar } from "react-icons/fi";
 import { getAllTagihan } from "@/lib/firebase/firestore";
 import StatusBadge from "@/components/ui/StatusBadge";
