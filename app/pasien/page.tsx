@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { FiCheckCircle, FiLoader } from "react-icons/fi";
-import { getTagihanByPasien, getTagihanById } from "@/lib/firebase/firestore";
+import { useState } from "react";
+import { FiLoader } from "react-icons/fi";
+import { getTagihanById } from "@/lib/firebase/firestore";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useTagihanByPasien } from "@/lib/hooks/useTagihan";
 import InvoiceCard from "@/components/billing/InvoiceCard";
 import ActiveInvoiceCard from "@/components/billing/ActiveInvoiceCard";
 import InvoiceModal from "@/components/billing/InvoiceModal";
@@ -12,55 +13,30 @@ import { Tagihan } from "@/lib/types";
 
 export default function PasienHome() {
   const { user, profile, loading: authLoading } = useAuth();
-  const [tagihans, setTagihans] = useState<Tagihan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { history: tagihans, loading: tagihanLoading, refresh } = useTagihanByPasien(user?.uid || "");
+  
   const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user]);
-
-  const fetchData = async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const data = await getTagihanByPasien(user.uid);
-      setTagihans(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const activeBill = tagihans.find(t => t.status === "pending");
   const recentHistory = tagihans.filter(t => t.status !== "pending").slice(0, 3);
 
-  const handlePay = async (id: string) => {
+  const handleAction = async (id: string, isPayment: boolean) => {
     const data = await getTagihanById(id);
     if (data) {
       setSelectedTagihan(data);
-      setIsInvoiceModalOpen(true);
-    }
-  };
-
-  const handleViewDetail = async (id: string) => {
-    const data = await getTagihanById(id);
-    if (data) {
-      setSelectedTagihan(data);
-      if (data.status === 'lunas') {
-        setIsReceiptModalOpen(true);
-      } else {
+      if (isPayment || data.status !== 'lunas') {
         setIsInvoiceModalOpen(true);
+      } else {
+        setIsReceiptModalOpen(true);
       }
     }
   };
 
-  if (authLoading || (loading && tagihans.length === 0)) {
+  const isLoading = authLoading || (tagihanLoading && tagihans.length === 0);
+
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <FiLoader className="w-10 h-10 text-violet-500 animate-spin mb-4" />
@@ -81,12 +57,12 @@ export default function PasienHome() {
       {activeBill ? (
         <ActiveInvoiceCard 
           tagihan={activeBill} 
-          onPay={() => handlePay(activeBill.id_tagihan)} 
-          onViewDetail={handleViewDetail}
+          onPay={() => handleAction(activeBill.id_tagihan, true)} 
+          onViewDetail={() => handleAction(activeBill.id_tagihan, false)}
         />
       ) : (
         <div className="bg-slate-50 p-12 text-center rounded-2xl border border-dashed border-slate-200">
-           <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Tidak ada tagihan aktif saat ini.</p>
+           <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Tidak ada tagihan aktif saat ini.</p>
         </div>
       )}
 
@@ -98,7 +74,7 @@ export default function PasienHome() {
               <InvoiceCard 
                 key={tagihan.id_tagihan} 
                 tagihan={tagihan} 
-                onViewDetail={handleViewDetail}
+                onViewDetail={() => handleAction(tagihan.id_tagihan, false)}
               />
             ))}
           </div>
@@ -109,7 +85,7 @@ export default function PasienHome() {
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
         tagihan={selectedTagihan}
-        onSuccess={fetchData}
+        onSuccess={refresh}
         role="pasien"
       />
 

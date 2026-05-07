@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FiSearch, FiLoader, FiClock } from "react-icons/fi";
-import { getTagihanByPasien, getTagihanById } from "@/lib/firebase/firestore";
+import { getTagihanById } from "@/lib/firebase/firestore";
 import { useAuth } from "@/lib/hooks/useAuth";
+import { useTagihanByPasien } from "@/lib/hooks/useTagihan";
 import InvoiceCard from "@/components/billing/InvoiceCard";
 import InvoiceModal from "@/components/billing/InvoiceModal";
 import ReceiptModal from "@/components/billing/ReceiptModal";
@@ -11,31 +12,11 @@ import { Tagihan } from "@/lib/types";
 
 export default function HistoryPage() {
   const { user, loading: authLoading } = useAuth();
-  const [tagihans, setTagihans] = useState<Tagihan[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { history: tagihans, loading: tagihanLoading, refresh } = useTagihanByPasien(user?.uid || "");
   const [search, setSearch] = useState("");
   const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
-
-  useEffect(() => {
-    if (user) {
-      fetchData();
-    }
-  }, [user]);
-
-  const fetchData = async () => {
-    if (!user) return;
-    setLoading(true);
-    try {
-      const data = await getTagihanByPasien(user.uid);
-      setTagihans(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredHistory = tagihans.filter(item => 
     (item.poli || "").toLowerCase().includes(search.toLowerCase()) || 
@@ -54,7 +35,9 @@ export default function HistoryPage() {
     }
   };
 
-  if (authLoading || (loading && tagihans.length === 0)) {
+  const isLoading = authLoading || (tagihanLoading && tagihans.length === 0);
+
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh]">
         <FiLoader className="w-10 h-10 text-violet-500 animate-spin mb-4" />
@@ -114,7 +97,7 @@ export default function HistoryPage() {
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
         tagihan={selectedTagihan}
-        onSuccess={fetchData}
+        onSuccess={refresh}
         role="pasien"
       />
 

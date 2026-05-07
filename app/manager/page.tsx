@@ -24,71 +24,18 @@ import {
   Cell
 } from "recharts";
 import PageHeader from "@/components/shared/PageHeader";
-import { getAllPembayaran, getAllTagihan } from "@/lib/firebase/firestore";
-import { formatRupiah } from "../../lib/utils/currency";
+import { useFinancialData } from "@/lib/hooks/useFinancialData";
+import { formatRupiah } from "@/lib/utils/currency";
 
 const COLORS = ["#8b5cf6", "#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
 
 export default function ManagerDashboard() {
   const [mounted, setMounted] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [pembayarans, setPembayarans] = useState<any[]>([]);
-  const [tagihans, setTagihans] = useState<any[]>([]);
+  const { stats, charts, loading } = useFinancialData();
 
   useEffect(() => {
     setMounted(true);
-    fetchData();
   }, []);
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const [payData, tagData] = await Promise.all([
-        getAllPembayaran(),
-        getAllTagihan()
-      ]);
-      setPembayarans(payData);
-      setTagihans(tagData);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Aggregation Logic
-  const totalRevenue = pembayarans.reduce((sum, p) => sum + (p.jumlah_pembayaran || 0), 0);
-  const totalClaims = pembayarans.reduce((sum, p) => sum + (p.cover_bpjs || 0), 0);
-  const totalTransactions = pembayarans.length;
-  const totalPatients = tagihans.length;
-
-  // Revenue by Day (Last 7 Days)
-  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
-  const revenueByDay = days.map((day, idx) => {
-    const total = pembayarans
-      .filter(p => {
-        const d = p.tanggal_pembayaran?.seconds ? new Date(p.tanggal_pembayaran.seconds * 1000) : new Date();
-        return d.getDay() === idx;
-      })
-      .reduce((sum, p) => sum + (p.jumlah_pembayaran || 0), 0);
-    return { name: day, total };
-  });
-
-  const sortedRevenue = [...revenueByDay.slice(1), revenueByDay[0]];
-
-  const poliCounts: Record<string, number> = {};
-  tagihans.forEach(t => {
-    const p = t.poli || "Umum";
-    poliCounts[p] = (poliCounts[p] || 0) + 1;
-  });
-  const dataPoli = Object.entries(poliCounts).map(([name, count]) => ({ name, count }));
-
-  const stats = [
-    { label: "Pendapatan Pasien", value: formatRupiah(totalRevenue), delta: "Real-time", icon: FiDollarSign, color: "bg-blue-500" },
-    { label: "Klaim BPJS", value: formatRupiah(totalClaims), delta: "Pending", icon: FiActivity, color: "bg-emerald-500" },
-    { label: "Total Transaksi", value: totalTransactions.toString(), delta: "Selesai", icon: FiTrendingUp, color: "bg-violet-500" },
-    { label: "Total Kunjungan", value: totalPatients.toString(), delta: "Terdaftar", icon: FiUsers, color: "bg-amber-500" },
-  ];
 
   if (!mounted) return null;
 
@@ -100,6 +47,13 @@ export default function ManagerDashboard() {
       </div>
     );
   }
+
+  const statItems = [
+    { label: "Pendapatan Pasien", value: formatRupiah(stats.totalRevenue), delta: "Real-time", icon: FiDollarSign, color: "bg-blue-500" },
+    { label: "Klaim BPJS", value: formatRupiah(stats.totalClaims), delta: "Pending", icon: FiActivity, color: "bg-emerald-500" },
+    { label: "Total Transaksi", value: stats.totalTransactions.toString(), delta: "Selesai", icon: FiTrendingUp, color: "bg-violet-500" },
+    { label: "Total Kunjungan", value: stats.totalKunjungan.toString(), delta: "Terdaftar", icon: FiUsers, color: "bg-amber-500" },
+  ];
 
   return (
     <div className="space-y-10 pb-10">
@@ -117,13 +71,13 @@ export default function ManagerDashboard() {
       </PageHeader>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
+        {statItems.map((stat) => (
           <div key={stat.label} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
             <div className="flex justify-between items-start mb-4">
               <div className={`${stat.color} p-3 rounded-2xl text-white shadow-lg group-hover:scale-110 transition-transform`}>
                 <stat.icon size={20} />
               </div>
-              <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${stat.delta.startsWith('+') ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
+              <span className={`text-[10px] font-black px-2 py-1 rounded-lg bg-emerald-50 text-emerald-600`}>
                 {stat.delta}
               </span>
             </div>
@@ -134,6 +88,7 @@ export default function ManagerDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        {/* Weekly Revenue Trend */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b border-slate-50 pb-4">
             <h3 className="font-black text-slate-800 uppercase tracking-tight text-xs">Tren Pendapatan Mingguan</h3>
@@ -141,7 +96,7 @@ export default function ManagerDashboard() {
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={sortedRevenue}>
+              <AreaChart data={charts.revenueTrend}>
                 <defs>
                   <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -161,6 +116,7 @@ export default function ManagerDashboard() {
           </div>
         </div>
 
+        {/* Department Share Bar Chart */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b border-slate-50 pb-4">
             <h3 className="font-black text-slate-800 uppercase tracking-tight text-xs">Distribusi Billing Per Poli</h3>
@@ -168,7 +124,7 @@ export default function ManagerDashboard() {
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dataPoli}>
+              <BarChart data={charts.departmentShare}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} />
@@ -177,7 +133,7 @@ export default function ManagerDashboard() {
                    contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px'}}
                 />
                 <Bar dataKey="count" radius={[10, 10, 0, 0]} barSize={40}>
-                  {dataPoli.map((entry, index) => (
+                  {charts.departmentShare.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Bar>
