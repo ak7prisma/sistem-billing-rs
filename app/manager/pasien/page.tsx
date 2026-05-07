@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { FiLoader } from "react-icons/fi";
-import PageHeader from "@/components/shared/PageHeader";
-import SearchBar from "@/components/shared/SearchBar";
-import PatientCard from "@/components/shared/PatientCard";
+import PageHeader from "@/components/ui/PageHeader";
+import SearchBar from "@/components/ui/SearchBar";
+import PatientCard from "@/components/ui/PatientCard";
 import { usePasien } from "@/lib/hooks/usePasien";
 
 export default function PasienManager() {

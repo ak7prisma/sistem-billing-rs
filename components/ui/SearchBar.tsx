@@ -10,9 +10,9 @@ interface SearchBarProps {
   className?: string;
 }
 
-export default function SearchBar({ value, onChange, placeholder = "Cari data...", className = "" }: SearchBarProps) {
+export default function SearchBar({ value, onChange, placeholder = "Cari data...", className = "" }: Readonly<SearchBarProps>) {
   return (
-    <div className={`relative flex-1 md:flex-none group min-w-[200px] ${className}`}>
+    <div className={`relative flex-1 md:flex-none group min-w-50 ${className}`}>
       <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-violet-500 transition-colors pointer-events-none">
         <FiSearch size={16} />
       </div>

@@ -6,8 +6,8 @@ import { getAllTagihan } from "@/lib/firebase/firestore";
 import StatusBadge from "@/components/ui/StatusBadge";
 import ReceiptModal from "@/components/billing/ReceiptModal";
 import { Tagihan } from "@/lib/types";
-import PageHeader from "@/components/shared/PageHeader";
-import SearchBar from "@/components/shared/SearchBar";
+import PageHeader from "@/components/ui/PageHeader";
+import SearchBar from "@/components/ui/SearchBar";
 
 export default function LaporanManager() {
   const [search, setSearch] = useState("");

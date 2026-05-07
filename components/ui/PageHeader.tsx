@@ -7,7 +7,7 @@ interface PageHeaderProps {
   children?: React.ReactNode;
 }
 
-export default function PageHeader({ title, subtitle, badge, children }: PageHeaderProps) {
+export default function PageHeader({ title, subtitle, badge, children }: Readonly<PageHeaderProps>) {
   return (
     <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
       <div className="space-y-1">

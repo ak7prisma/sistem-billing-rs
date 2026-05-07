@@ -7,9 +7,9 @@ import StatusBadge from "@/components/ui/StatusBadge";
 import InvoiceModal from "@/components/billing/InvoiceModal";
 import ReceiptModal from "@/components/billing/ReceiptModal";
 import { Tagihan } from "@/lib/types";
-import PageHeader from "@/components/shared/PageHeader";
-import SearchBar from "@/components/shared/SearchBar";
-import StatsCard from "@/components/shared/StatsCard";
+import PageHeader from "@/components/ui/PageHeader";
+import SearchBar from "@/components/ui/SearchBar";
+import StatsCard from "@/components/ui/StatsCard";
 import { formatRupiah } from "@/lib/utils/currency";
 
 export default function KasirDashboard() {

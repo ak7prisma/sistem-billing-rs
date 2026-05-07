@@ -23,7 +23,7 @@ import {
   Area,
   Cell
 } from "recharts";
-import PageHeader from "@/components/shared/PageHeader";
+import PageHeader from "@/components/ui/PageHeader";
 import { useFinancialData } from "@/lib/hooks/useFinancialData";
 import { formatRupiah } from "@/lib/utils/currency";
 
