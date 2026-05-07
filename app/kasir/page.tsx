@@ -27,7 +27,24 @@ export default function KasirDashboard() {
     setLoading(true);
     try {
       const data = await getAllTagihan();
-      setTagihans(data);
+      
+      // Auto-Expiry Logic (24 Hours)
+      const now = new Date().getTime();
+      const processedData = data.map(t => {
+        if (t.status === "pending" && t.createdAt) {
+          const createdTime = t.createdAt.seconds 
+            ? t.createdAt.seconds * 1000 
+            : new Date(t.tanggal).getTime();
+          
+          const diffHours = (now - createdTime) / (1000 * 60 * 60);
+          if (diffHours > 24) {
+            return { ...t, status: "gagal" as const };
+          }
+        }
+        return t;
+      });
+
+      setTagihans(processedData);
     } catch (error) {
       console.error("Error fetching tagihan:", error);
     } finally {

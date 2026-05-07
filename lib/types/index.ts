@@ -60,11 +60,12 @@ export interface RincianTagihan {
 export interface Tagihan {
   id_tagihan: string;
   pasien_id: string;
-  poli?: string; // Optional but needed for UI
-  tanggal: any; // timestamp
+  poli?: string;
+  tanggal: any;
   status: TagihanStatus;
   total_biaya: number;
   rincian: RincianTagihan[];
+  createdAt?: any;
 }
 
 export interface Pembayaran {

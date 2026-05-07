@@ -134,16 +134,39 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
               <p className="text-sm font-bold text-slate-700">Pembayaran Tunai (Cash)</p>
               <p className="text-[10px] text-slate-400 mt-0.5">QRIS &amp; Transfer diproses otomatis oleh payment service.</p>
             </div>
-            <button 
-              onClick={() => handlePay("tunai")}
-              disabled={loading}
-              className="shrink-0 flex items-center justify-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-slate-900/20 disabled:opacity-50 active:scale-95"
-            >
-              {loading 
-                ? <><FiLoader className="animate-spin" /> Memproses...</>
-                : <><FiCreditCard /> Konfirmasi Bayar Tunai</>
-              }
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+              <button 
+                onClick={async () => {
+                  if (confirm("Batalkan tagihan ini?")) {
+                    setLoading(true);
+                    try {
+                      const { updateTagihanStatus } = await import("@/lib/firebase/firestore");
+                      await updateTagihanStatus(tagihan.id_tagihan, "gagal");
+                      onSuccess?.();
+                      onClose();
+                    } catch (e) {
+                      alert("Gagal membatalkan tagihan.");
+                    } finally {
+                      setLoading(false);
+                    }
+                  }
+                }}
+                disabled={loading}
+                className="shrink-0 flex items-center justify-center gap-3 bg-white border border-slate-200 text-rose-600 px-6 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-rose-50 transition-all disabled:opacity-50"
+              >
+                Batalkan
+              </button>
+              <button 
+                onClick={() => handlePay("tunai")}
+                disabled={loading}
+                className="shrink-0 flex items-center justify-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-slate-900/20 disabled:opacity-50 active:scale-95"
+              >
+                {loading 
+                  ? <><FiLoader className="animate-spin" /> Memproses...</>
+                  : <><FiCreditCard /> Konfirmasi Bayar</>
+                }
+              </button>
+            </div>
           </div>
         )}
 
