@@ -58,14 +58,29 @@ export const createTagihan = async (tagihan: Omit<Tagihan, "id_tagihan">) => {
 export const getTagihanByPasien = async (pasienId: string) => {
   const q = query(
     collection(db, "tagihan"), 
-    where("pasien_id", "==", pasienId),
-    orderBy("tanggal", "desc")
+    where("pasien_id", "==", pasienId)
   );
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ 
+  const data = querySnapshot.docs.map(doc => ({ 
     id_tagihan: doc.id, 
     ...doc.data() 
   } as Tagihan));
+
+  // Sort manual di client (untuk menghindari requirement index Firestore)
+  return data.sort((a, b) => {
+    const dateA = a.createdAt?.seconds || new Date(a.tanggal).getTime();
+    const dateB = b.createdAt?.seconds || new Date(b.tanggal).getTime();
+    return dateB - dateA;
+  });
+};
+
+export const getTagihanById = async (tagihanId: string) => {
+  const docRef = doc(db, "tagihan", tagihanId);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return { id_tagihan: docSnap.id, ...docSnap.data() } as Tagihan;
+  }
+  return null;
 };
 
 export const getAllTagihan = async () => {

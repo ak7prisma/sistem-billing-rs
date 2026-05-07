@@ -205,10 +205,24 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
               Batal
             </button>
             
-            {tagihan.status !== "pending" && (
+            {tagihan.status !== "pending" ? (
               <button className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-slate-800 text-white px-8 py-3 rounded-xl font-black shadow-lg hover:bg-slate-700 transition uppercase text-xs tracking-wider">
                 <FiPrinter size={18} /> Cetak Struk
               </button>
+            ) : (
+              role === "pasien" && (
+                <button 
+                  onClick={() => {
+                    if (confirm("Lanjutkan pembayaran via QRIS? (Simulasi)")) {
+                      handlePay("qris");
+                    }
+                  }}
+                  disabled={loading}
+                  className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-violet-500 text-white px-10 py-3 rounded-xl font-black shadow-lg hover:opacity-90 transition uppercase text-xs tracking-widest"
+                >
+                  {loading ? <FiLoader className="animate-spin" /> : <FiCreditCard size={18} />} Bayar via QRIS
+                </button>
+              )
             )}
           </div>
 

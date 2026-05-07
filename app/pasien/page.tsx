@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { FiCheckCircle } from "react-icons/fi";
-import { MOCK_TAGIHAN, getTagihanById } from "@/lib/service/mock";
+import { useEffect, useState } from "react";
+import { FiCheckCircle, FiLoader } from "react-icons/fi";
+import { getTagihanByPasien, getTagihanById } from "@/lib/firebase/firestore";
+import { useAuth } from "@/lib/hooks/useAuth";
 import InvoiceCard from "@/components/billing/InvoiceCard";
 import ActiveInvoiceCard from "@/components/billing/ActiveInvoiceCard";
 import InvoiceModal from "@/components/billing/InvoiceModal";
@@ -10,22 +11,45 @@ import ReceiptModal from "@/components/billing/ReceiptModal";
 import { Tagihan } from "@/lib/types";
 
 export default function PasienHome() {
-  const [isPaid, setIsPaid] = useState(false);
+  const { user, profile, loading: authLoading } = useAuth();
+  const [tagihans, setTagihans] = useState<Tagihan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
   
-  const activeBill = MOCK_TAGIHAN.find(t => t.status === "pending");
-  const recentHistory = MOCK_TAGIHAN.filter(t => t.status !== "pending").slice(0, 2);
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
 
-  const handlePay = (id: string) => {
-    if (confirm(`Lanjutkan pembayaran ${id} menggunakan QRIS?`)) {
-      setIsPaid(true);
+  const fetchData = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const data = await getTagihanByPasien(user.uid);
+      setTagihans(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleViewDetail = (id: string) => {
-    const data = getTagihanById(id);
+  const activeBill = tagihans.find(t => t.status === "pending");
+  const recentHistory = tagihans.filter(t => t.status !== "pending").slice(0, 3);
+
+  const handlePay = async (id: string) => {
+    const data = await getTagihanById(id);
+    if (data) {
+      setSelectedTagihan(data);
+      setIsInvoiceModalOpen(true);
+    }
+  };
+
+  const handleViewDetail = async (id: string) => {
+    const data = await getTagihanById(id);
     if (data) {
       setSelectedTagihan(data);
       if (data.status === 'lunas') {
@@ -36,55 +60,56 @@ export default function PasienHome() {
     }
   };
 
+  if (authLoading || (loading && tagihans.length === 0)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <FiLoader className="w-10 h-10 text-violet-500 animate-spin mb-4" />
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Memuat Data Pasien...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto mt-6 md:mt-12 p-4 md:p-6 space-y-6 md:space-y-8">
       <div>
         <h1 className="text-3xl md:text-4xl font-black uppercase tracking-wide text-slate-800 mb-2">
           Tagihan <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-violet-500">Aktif</span>
         </h1>
-        <p className="text-slate-500 font-medium text-sm md:text-base">Selesaikan pembayaran administrasi rumah sakit Anda.</p>
+        <p className="text-slate-500 font-medium text-sm md:text-base">Halo {profile?.nama?.split(' ')[0] || "Pasien"}, selesaikan pembayaran Anda.</p>
       </div>
 
-      {!isPaid && activeBill ? (
+      {activeBill ? (
         <ActiveInvoiceCard 
           tagihan={activeBill} 
-          onPay={() => handlePay(activeBill.id)} 
+          onPay={() => handlePay(activeBill.id_tagihan)} 
           onViewDetail={handleViewDetail}
         />
-      ) : isPaid ? (
-        <div className="bg-emerald-50 p-6 md:p-8 rounded-2xl border border-emerald-200 flex items-center shadow-md gap-4 animate-in fade-in zoom-in duration-500">
-          <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <FiCheckCircle className="w-6 h-6 md:w-8 md:h-8" />
-          </div>
-          <div>
-            <h3 className="font-black text-lg md:text-xl text-emerald-800 uppercase tracking-wide">Pembayaran Berhasil!</h3>
-            <p className="text-xs md:text-sm font-medium text-emerald-600">Terima kasih. Bukti bayar telah dikirim ke Email Anda.</p>
-          </div>
-        </div>
       ) : (
         <div className="bg-slate-50 p-12 text-center rounded-2xl border border-dashed border-slate-200">
-           <p className="text-slate-400 font-bold">Tidak ada tagihan aktif saat ini.</p>
+           <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Tidak ada tagihan aktif saat ini.</p>
         </div>
       )}
 
-      <div className="mt-8 md:mt-12">
-        <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-4 md:mb-6 border-b border-slate-100 pb-2">Riwayat Terakhir</h3>
-        <div className="space-y-4">
-          {recentHistory.map((tagihan) => (
-            <InvoiceCard 
-              key={tagihan.id} 
-              tagihan={tagihan} 
-              onViewDetail={handleViewDetail}
-            />
-          ))}
+      {recentHistory.length > 0 && (
+        <div className="mt-8 md:mt-12">
+          <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-4 md:mb-6 border-b border-slate-100 pb-2 uppercase tracking-wide">Riwayat Terakhir</h3>
+          <div className="space-y-4">
+            {recentHistory.map((tagihan) => (
+              <InvoiceCard 
+                key={tagihan.id_tagihan} 
+                tagihan={tagihan} 
+                onViewDetail={handleViewDetail}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <InvoiceModal 
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
         tagihan={selectedTagihan}
-        onConfirmPayment={handlePay}
+        onSuccess={fetchData}
         role="pasien"
       />
 

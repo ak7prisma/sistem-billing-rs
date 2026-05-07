@@ -71,3 +71,9 @@ export const getUserRole = async (uid: string): Promise<UserRole | null> => {
   const userSnap = await getDoc(userRef);
   return userSnap.exists() ? (userSnap.data().role as UserRole) : null;
 };
+
+export const getUserProfile = async (uid: string) => {
+  const userRef = doc(db, "users", uid);
+  const userSnap = await getDoc(userRef);
+  return userSnap.exists() ? userSnap.data() : null;
+};

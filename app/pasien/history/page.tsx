@@ -1,26 +1,49 @@
 "use client";
 
-import { useState } from "react";
-import { FiSearch } from "react-icons/fi";
-import { MOCK_TAGIHAN, getTagihanById } from "@/lib/service/mock";
+import { useEffect, useState } from "react";
+import { FiSearch, FiLoader, FiClock } from "react-icons/fi";
+import { getTagihanByPasien, getTagihanById } from "@/lib/firebase/firestore";
+import { useAuth } from "@/lib/hooks/useAuth";
 import InvoiceCard from "@/components/billing/InvoiceCard";
 import InvoiceModal from "@/components/billing/InvoiceModal";
 import ReceiptModal from "@/components/billing/ReceiptModal";
 import { Tagihan } from "@/lib/types";
 
 export default function HistoryPage() {
+  const { user, loading: authLoading } = useAuth();
+  const [tagihans, setTagihans] = useState<Tagihan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
-  const filteredHistory = MOCK_TAGIHAN.filter(item => 
+  useEffect(() => {
+    if (user) {
+      fetchData();
+    }
+  }, [user]);
+
+  const fetchData = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const data = await getTagihanByPasien(user.uid);
+      setTagihans(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredHistory = tagihans.filter(item => 
     (item.poli || "").toLowerCase().includes(search.toLowerCase()) || 
-    item.id.toLowerCase().includes(search.toLowerCase())
+    item.id_tagihan.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleViewDetail = (id: string) => {
-    const data = getTagihanById(id);
+  const handleViewDetail = async (id: string) => {
+    const data = await getTagihanById(id);
     if (data) {
       setSelectedTagihan(data);
       if (data.status === 'lunas') {
@@ -30,6 +53,15 @@ export default function HistoryPage() {
       }
     }
   };
+
+  if (authLoading || (loading && tagihans.length === 0)) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <FiLoader className="w-10 h-10 text-violet-500 animate-spin mb-4" />
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Memuat Riwayat...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto mt-6 md:mt-12 p-4 md:p-6 space-y-6 md:space-y-8 mb-20 md:mb-0">
@@ -56,17 +88,21 @@ export default function HistoryPage() {
         {filteredHistory.length > 0 ? (
           filteredHistory.map((tagihan) => (
             <InvoiceCard 
-              key={tagihan.id} 
+              key={tagihan.id_tagihan} 
               tagihan={tagihan} 
               onViewDetail={handleViewDetail}
             />
           ))
         ) : (
-          <div className="bg-white p-12 text-center rounded-2xl border border-dashed border-slate-200">
-            <p className="text-slate-400 font-bold">Transaksi tidak ditemukan.</p>
+          <div className="bg-white p-12 text-center rounded-2xl border border-dashed border-slate-200 shadow-sm flex flex-col items-center">
+            <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 text-slate-200">
+              <FiClock size={32} />
+            </div>
+            <p className="text-slate-800 font-black uppercase tracking-tight">Transaksi tidak ditemukan.</p>
+            <p className="text-slate-400 text-xs mt-1 mb-4">Pastikan keyword pencarian sudah benar.</p>
             <button 
               onClick={() => setSearch("")}
-              className="text-violet-600 mt-2 font-bold hover:underline"
+              className="px-6 py-2 bg-slate-100 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-200 transition uppercase tracking-widest"
             >
               Reset Pencarian
             </button>
@@ -78,6 +114,7 @@ export default function HistoryPage() {
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
         tagihan={selectedTagihan}
+        onSuccess={fetchData}
         role="pasien"
       />
 
