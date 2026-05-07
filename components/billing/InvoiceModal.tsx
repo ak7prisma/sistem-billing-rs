@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiX, FiActivity, FiCreditCard, FiPrinter, FiShield, FiLoader } from "react-icons/fi";
-import { Tagihan } from "@/lib/types";
+import { Tagihan, RincianTagihan } from "@/lib/types";
 import { prosesPembayaran } from "@/lib/service/payment";
+import { getRinciTagihanByTagihan } from "@/lib/firebase/firestore";
 import BillingBreakdown from "./BillingBreakdown";
 import StatusBadge from "../ui/StatusBadge";
 
@@ -15,6 +16,33 @@ interface InvoiceModalProps {
 
 const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, onSuccess, role }) => {
   const [loading, setLoading] = useState(false);
+  const [rincian, setRincian] = useState<RincianTagihan[]>([]);
+  const [loadingRincian, setLoadingRincian] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !tagihan) return;
+
+    // Jika tagihan sudah punya rincian embedded, gunakan langsung
+    if (tagihan.rincian && tagihan.rincian.length > 0) {
+      setRincian(tagihan.rincian);
+      return;
+    }
+
+    // Jika tidak, fetch dari koleksi rinci_tagihan
+    const fetchRincian = async () => {
+      setLoadingRincian(true);
+      try {
+        const data = await getRinciTagihanByTagihan(tagihan.id_tagihan);
+        setRincian(data);
+      } catch (err) {
+        console.error("Gagal memuat rincian:", err);
+      } finally {
+        setLoadingRincian(false);
+      }
+    };
+
+    fetchRincian();
+  }, [isOpen, tagihan]);
 
   if (!isOpen || !tagihan) return null;
 
@@ -75,36 +103,39 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
             </div>
           </div>
 
-          <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-            <BillingBreakdown rincian={tagihan.rincian} tipePenjamin="bpjs" />
+          <div className="border border-slate-100 rounded-2xl overflow-hidden shadow-sm min-h-[100px]">
+            {loadingRincian ? (
+              <div className="flex items-center justify-center p-8 gap-3 text-slate-400">
+                <FiLoader className="animate-spin" />
+                <span className="text-xs font-bold uppercase tracking-widest">Memuat Rincian...</span>
+              </div>
+            ) : (
+              <BillingBreakdown rincian={rincian} tipePenjamin="bpjs" />
+            )}
           </div>
         </div>
 
-        {tagihan.status === "pending" && (
-          <div className="p-8 bg-slate-50 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+
+        {tagihan.status === "pending" && role === "kasir" && (
+          <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-4">
+            <div className="flex-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Metode Pembayaran</p>
+              <p className="text-sm font-bold text-slate-700">Pembayaran Tunai (Cash)</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">QRIS &amp; Transfer diproses otomatis oleh payment service.</p>
+            </div>
             <button 
               onClick={() => handlePay("tunai")}
               disabled={loading}
-              className="flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-800 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition shadow-sm disabled:opacity-50"
+              className="shrink-0 flex items-center justify-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-slate-900/20 disabled:opacity-50 active:scale-95"
             >
-              {loading ? <FiLoader className="animate-spin" /> : <><FiCreditCard /> Bayar Tunai</>}
-            </button>
-            <button 
-              onClick={() => handlePay("qris")}
-              disabled={loading}
-              className="flex items-center justify-center gap-3 bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition shadow-xl shadow-blue-600/20 disabled:opacity-50"
-            >
-              {loading ? <FiLoader className="animate-spin" /> : <><FiActivity /> Bayar QRIS</>}
-            </button>
-            <button 
-              onClick={() => handlePay("transfer")}
-              disabled={loading}
-              className="flex items-center justify-center gap-3 bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition shadow-xl shadow-slate-900/20 disabled:opacity-50"
-            >
-              {loading ? <FiLoader className="animate-spin" /> : <><FiShield /> Transfer Bank</>}
+              {loading 
+                ? <><FiLoader className="animate-spin" /> Memproses...</>
+                : <><FiCreditCard /> Konfirmasi Bayar Tunai</>
+              }
             </button>
           </div>
         )}
+
 
         <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">

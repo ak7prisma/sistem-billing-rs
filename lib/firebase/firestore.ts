@@ -77,24 +77,26 @@ export const updateTagihanStatus = async (tagihanId: string, status: Tagihan["st
   });
 };
 
+// Rinci Tagihan Helpers
+export const getRinciTagihanByTagihan = async (tagihanId: string): Promise<RincianTagihan[]> => {
+  const q = query(collection(db, "rinci_tagihan"), where("id_tagihan", "==", tagihanId));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(d => ({ id_rincian: d.id, ...d.data() } as RincianTagihan));
+};
+
 // Pembayaran Helpers
 export const processPembayaran = async (pembayaran: Omit<Pembayaran, "id_pembayaran" | "tanggal_pembayaran">) => {
   const batch = writeBatch(db);
   
-  // 1. Create Pembayaran Record
   const pembayaranRef = doc(collection(db, "pembayaran"));
   batch.set(pembayaranRef, {
     ...pembayaran,
     tanggal_pembayaran: serverTimestamp(),
-    status: "berhasil" // In prototype, assume success
+    status: "berhasil"
   });
 
-  // 2. Update Tagihan Status
   const tagihanRef = doc(db, "tagihan", pembayaran.tagihan_id);
-  batch.update(tagihanRef, { 
-    status: "lunas",
-    updatedAt: serverTimestamp()
-  });
+  batch.update(tagihanRef, { status: "lunas", updatedAt: serverTimestamp() });
 
   await batch.commit();
   return pembayaranRef.id;

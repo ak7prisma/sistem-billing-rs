@@ -6,7 +6,7 @@ interface BillingBreakdownProps {
   tipePenjamin: "bpjs" | "umum";
 }
 
-const BillingBreakdown: React.FC<BillingBreakdownProps> = ({ rincian, tipePenjamin }) => {
+const BillingBreakdown: React.FC<BillingBreakdownProps> = ({ rincian = [], tipePenjamin }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
