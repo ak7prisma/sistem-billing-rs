@@ -35,13 +35,13 @@ export interface LayananLabor {
 
 // Internal Data
 export interface Pasien {
-  id: string; // id_pasien
+  id: string;
   no_rm: string;
   nama: string;
   tipe_penjamin: "bpjs" | "umum";
   no_bpjs?: string;
   alamat?: string;
-  email?: string; // For auth link
+  email?: string;
 }
 
 export interface RincianTagihan {
@@ -58,7 +58,6 @@ export interface RincianTagihan {
 }
 
 export interface Tagihan {
-  id: ReactNode;
   id_tagihan: string;
   pasien_id: string;
   poli?: string;
@@ -73,8 +72,7 @@ export interface Pembayaran {
   id_pembayaran: string;
   tagihan_id: string;
   metode_pembayaran: "tunai" | "qris" | "transfer";
-  tanggal_pembayaran: any; // timestamp
-  jumlah_pembayaran: number;
+  tanggal_pembayaran: any;
   cover_bpjs: number;
   iur_biaya: number;
   status: "berhasil" | "gagal";

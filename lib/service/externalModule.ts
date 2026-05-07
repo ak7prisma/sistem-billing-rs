@@ -20,7 +20,7 @@ export const fetchExternalMedis = async (kunjunganId: string): Promise<RincianTa
       jumlah: 1,
       subtotal: randomMedis.harga,
       tanggal: new Date().toISOString().split('T')[0],
-      is_covered_bpjs: randomMedis.is_covered_bpjs // Gunakan dari Master Data
+      is_covered_bpjs: randomMedis.is_covered_bpjs
     }
   ];
 };
@@ -39,7 +39,7 @@ export const fetchExternalLab = async (kunjunganId: string): Promise<RincianTagi
       jumlah: 1,
       subtotal: randomLab.harga,
       tanggal: new Date().toISOString().split('T')[0],
-      is_covered_bpjs: randomLab.is_covered_bpjs // Gunakan dari Master Data
+      is_covered_bpjs: randomLab.is_covered_bpjs
     }
   ];
 };
@@ -59,7 +59,7 @@ export const fetchExternalFarmasi = async (kunjunganId: string): Promise<Rincian
       jumlah: qty,
       subtotal: randomObat.harga * qty,
       tanggal: new Date().toISOString().split('T')[0],
-      is_covered_bpjs: randomObat.is_covered_bpjs // Gunakan dari Master Data
+      is_covered_bpjs: randomObat.is_covered_bpjs
     }
   ];
 };

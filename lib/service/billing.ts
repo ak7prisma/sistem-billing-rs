@@ -33,7 +33,7 @@ export const konsolidasiTagihan = async (pasienId: string, kunjunganId: string, 
       status: "pending",
       total_biaya: totalIurBiaya,
       poli: poli,
-      rincian: rincianGabungan
+      rincian: rincianGabungan,
     };
 
     await setDoc(doc(db, "tagihan", idTagihan), {
