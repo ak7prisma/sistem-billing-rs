@@ -1,6 +1,7 @@
-import React from "react";
-import { FiX, FiActivity, FiCreditCard, FiPrinter, FiShield } from "react-icons/fi";
+import React, { useState } from "react";
+import { FiX, FiActivity, FiCreditCard, FiPrinter, FiShield, FiLoader } from "react-icons/fi";
 import { Tagihan } from "@/lib/types";
+import { prosesPembayaran } from "@/lib/service/payment";
 import BillingBreakdown from "./BillingBreakdown";
 import StatusBadge from "../ui/StatusBadge";
 
@@ -8,12 +9,29 @@ interface InvoiceModalProps {
   isOpen: boolean;
   onClose: () => void;
   tagihan: Tagihan | null;
-  onConfirmPayment?: (id: string) => void;
+  onSuccess?: () => void;
   role: "pasien" | "kasir";
 }
 
-const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, onConfirmPayment, role }) => {
+const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, onSuccess, role }) => {
+  const [loading, setLoading] = useState(false);
+
   if (!isOpen || !tagihan) return null;
+
+  const handlePay = async (metode: "tunai" | "qris" | "transfer") => {
+    setLoading(true);
+    try {
+      await prosesPembayaran(tagihan, metode);
+      alert("Pembayaran Berhasil!");
+      onSuccess?.();
+      onClose();
+    } catch (error) {
+      alert("Gagal memproses pembayaran.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
@@ -35,7 +53,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
             </div>
             <div>
               <h2 className="text-xl md:text-2xl font-black text-slate-800 uppercase tracking-tight">Rincian <span className="text-violet-600">Invoice</span></h2>
-              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{tagihan.id}</p>
+              <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{tagihan.id_tagihan}</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors text-slate-400">
@@ -62,6 +80,32 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
           </div>
         </div>
 
+        {tagihan.status === "pending" && (
+          <div className="p-8 bg-slate-50 border-t border-slate-100 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <button 
+              onClick={() => handlePay("tunai")}
+              disabled={loading}
+              className="flex items-center justify-center gap-3 bg-white border border-slate-200 text-slate-800 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-100 transition shadow-sm disabled:opacity-50"
+            >
+              {loading ? <FiLoader className="animate-spin" /> : <><FiCreditCard /> Bayar Tunai</>}
+            </button>
+            <button 
+              onClick={() => handlePay("qris")}
+              disabled={loading}
+              className="flex items-center justify-center gap-3 bg-blue-600 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-blue-700 transition shadow-xl shadow-blue-600/20 disabled:opacity-50"
+            >
+              {loading ? <FiLoader className="animate-spin" /> : <><FiActivity /> Bayar QRIS</>}
+            </button>
+            <button 
+              onClick={() => handlePay("transfer")}
+              disabled={loading}
+              className="flex items-center justify-center gap-3 bg-slate-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-slate-800 transition shadow-xl shadow-slate-900/20 disabled:opacity-50"
+            >
+              {loading ? <FiLoader className="animate-spin" /> : <><FiShield /> Transfer Bank</>}
+            </button>
+          </div>
+        )}
+
         <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-center md:text-left">
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Iur Biaya</p>
@@ -78,30 +122,13 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
               Batal
             </button>
             
-            {tagihan.status === "pending" && (
-              role === "kasir" ? (
-                <button 
-                  onClick={() => onConfirmPayment?.(tagihan.id)}
-                  className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-slate-900 text-white px-8 py-3 rounded-xl font-black shadow-lg hover:bg-slate-800 transition uppercase text-xs tracking-wider"
-                >
-                  <FiShield size={18} /> Konfirmasi Bayar
-                </button>
-              ) : (
-                <button 
-                  onClick={() => onConfirmPayment?.(tagihan.id)}
-                  className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-violet-500 text-white px-8 py-3 rounded-xl font-black shadow-lg shadow-violet-500/20 hover:scale-105 transition uppercase text-xs tracking-wider"
-                >
-                  <FiCreditCard size={18} /> Bayar Sekarang
-                </button>
-              )
-            )}
-
             {tagihan.status !== "pending" && (
               <button className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-slate-800 text-white px-8 py-3 rounded-xl font-black shadow-lg hover:bg-slate-700 transition uppercase text-xs tracking-wider">
                 <FiPrinter size={18} /> Cetak Struk
               </button>
             )}
           </div>
+
         </div>
       </div>
     </div>

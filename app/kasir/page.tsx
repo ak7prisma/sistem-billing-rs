@@ -1,23 +1,43 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiSearch, FiPrinter, FiPlus } from "react-icons/fi";
-import { MOCK_TAGIHAN } from "@/lib/service/billing";
+import { getAllTagihan } from "@/lib/firebase/firestore";
+import { konsolidasiTagihan } from "@/lib/service/billing";
 import StatusBadge from "@/components/ui/StatusBadge";
 import InvoiceModal from "@/components/billing/InvoiceModal";
 import ReceiptModal from "@/components/billing/ReceiptModal";
 import { Tagihan } from "@/lib/types";
 import PageHeader from "@/components/shared/PageHeader";
+import SearchBar from "@/components/shared/SearchBar";
 
 export default function KasirDashboard() {
   const [search, setSearch] = useState("");
+  const [tagihans, setTagihans] = useState<Tagihan[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
-  const filteredData = MOCK_TAGIHAN.filter(item => 
-    item.poli.toLowerCase().includes(search.toLowerCase()) || 
-    item.id.toLowerCase().includes(search.toLowerCase())
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllTagihan();
+      setTagihans(data);
+    } catch (error) {
+      console.error("Error fetching tagihan:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredData = tagihans.filter(item => 
+    (item.poli || "").toLowerCase().includes(search.toLowerCase()) || 
+    item.id_tagihan.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleActionClick = (tagihan: Tagihan) => {
@@ -44,15 +64,30 @@ export default function KasirDashboard() {
         subtitle="Proses pembayaran pasien dari Poli, Lab, dan Farmasi."
         badge="Kasir"
       >
-        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white border border-slate-200 px-6 py-3 rounded-2xl text-[10px] font-black text-slate-600 shadow-sm hover:bg-slate-50 transition uppercase tracking-widest">
-          <FiSearch /> Cari Tagihan
-        </button>
-        <button className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-2xl text-[10px] font-black shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition uppercase tracking-widest">
-          <FiPlus /> Buat Baru
+        <SearchBar 
+          value={search} 
+          onChange={setSearch} 
+          placeholder="Cari No. Invoice / Poli..." 
+        />
+        <button 
+          onClick={async () => {
+            const ok = confirm("Tarik data tindakan & obat dari modul lain?");
+            if (ok) {
+              try {
+                const res = await konsolidasiTagihan("P-001", "KUN-123", "Poli Jantung");
+                alert(`Berhasil! Tagihan baru dibuat: ${res.id_tagihan}`);
+                fetchData();
+              } catch (e) {
+                alert("Gagal menarik data.");
+              }
+            }
+          }}
+          className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-2xl text-[10px] font-black shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition uppercase tracking-widest"
+        >
+          <FiPlus /> Simulasi Tarik Data
         </button>
       </PageHeader>
 
-      {/* Stats Quick View */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center font-black">24</div>
@@ -78,56 +113,74 @@ export default function KasirDashboard() {
       </div>
 
       {/* Main Table */}
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[800px]">
-            <thead className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">
-              <tr>
-                <th className="p-6 pl-10">Invoice ID</th>
-                <th className="p-6">Poli / Layanan</th>
-                <th className="p-6">Tanggal</th>
-                <th className="p-6">Total Tagihan</th>
-                <th className="p-6 text-center">Status</th>
-                <th className="p-6 pr-10 text-right">Aksi</th>
-              </tr>
-            </thead>
-            <tbody className="text-sm divide-y divide-slate-50">
-              {filteredData.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/50 transition group">
-                  <td className="p-6 pl-10 font-black text-slate-800">{item.id}</td>
-                  <td className="p-6 font-bold text-slate-600">{item.poli}</td>
-                  <td className="p-6 text-slate-400 font-medium">{item.tanggal}</td>
-                  <td className="p-6 font-black text-slate-800">{formatCurrency(item.total_biaya)}</td>
-                  <td className="p-6 text-center">
-                    <StatusBadge status={item.status as any} />
-                  </td>
-                  <td className="p-6 pr-10 text-right">
-                    <button 
-                      onClick={() => handleActionClick(item)}
-                      className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest shadow-sm active:scale-95 ${
-                        item.status === "pending" 
-                        ? "bg-slate-900 text-white hover:bg-blue-600" 
-                        : "bg-slate-100 text-slate-600 hover:bg-emerald-600 hover:text-white"
-                      }`}
-                    >
-                      {item.status === "pending" ? (
-                        <>Konfirmasi Bayar</>
-                      ) : (
-                        <><FiPrinter size={14} /> Cetak Struk</>
-                      )}
-                    </button>
-                  </td>
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden min-h-[400px] flex flex-col">
+        {loading ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-12">
+            <div className="w-12 h-12 border-4 border-slate-200 border-t-violet-500 rounded-full animate-spin mb-4"></div>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Memuat Data Tagihan...</p>
+          </div>
+        ) : filteredData.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center p-12 text-center">
+            <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-4 border border-slate-100">
+              <FiSearch className="text-slate-300 w-8 h-8" />
+            </div>
+            <p className="text-slate-800 font-black uppercase tracking-tight">Tidak Ada Tagihan</p>
+            <p className="text-slate-400 text-xs font-medium max-w-[200px] mt-1">Belum ada data tagihan yang masuk atau tidak ditemukan.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">
+                <tr>
+                  <th className="p-6 pl-10">Invoice ID</th>
+                  <th className="p-6">Poli / Layanan</th>
+                  <th className="p-6">Tanggal</th>
+                  <th className="p-6">Total Tagihan</th>
+                  <th className="p-6 text-center">Status</th>
+                  <th className="p-6 pr-10 text-right">Aksi</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="text-sm divide-y divide-slate-50">
+                {filteredData.map((item) => (
+                  <tr key={item.id_tagihan} className="hover:bg-slate-50/50 transition group">
+                    <td className="p-6 pl-10 font-black text-slate-800">{item.id_tagihan}</td>
+                    <td className="p-6 font-bold text-slate-600">{item.poli}</td>
+                    <td className="p-6 text-slate-400 font-medium">{item.tanggal}</td>
+                    <td className="p-6 font-black text-slate-800">{formatCurrency(item.total_biaya)}</td>
+                    <td className="p-6 text-center">
+                      <StatusBadge status={item.status as any} />
+                    </td>
+                    <td className="p-6 pr-10 text-right">
+                      <button 
+                        onClick={() => handleActionClick(item)}
+                        className={`inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest shadow-sm active:scale-95 ${
+                          item.status === "pending" 
+                          ? "bg-slate-900 text-white hover:bg-blue-600" 
+                          : "bg-slate-100 text-slate-600 hover:bg-emerald-600 hover:text-white"
+                        }`}
+                      >
+                        {item.status === "pending" ? (
+                          <>Konfirmasi Bayar</>
+                        ) : (
+                          <><FiPrinter size={14} /> Cetak Struk</>
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
+
 
       <InvoiceModal 
         isOpen={isInvoiceModalOpen}
         onClose={() => setIsInvoiceModalOpen(false)}
+        onSuccess={fetchData}
         tagihan={selectedTagihan}
+        role="kasir"
       />
 
       <ReceiptModal 

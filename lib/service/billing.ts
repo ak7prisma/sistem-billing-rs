@@ -1,73 +1,50 @@
-import { Tagihan, RincianTagihan } from "../types";
+import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { db } from "../firebase/config";
+import { Tagihan, RincianTagihan, Pasien } from "../types";
+import { fetchExternalMedis, fetchExternalLab, fetchExternalFarmasi } from "./externalModule";
 
-export const MOCK_TAGIHAN: Tagihan[] = [
-  {
-    id: "INV-20260505-882",
-    kunjungan_id: "KJN-001",
-    pasien_id: "PSN-001",
-    total_biaya: 150000,
-    status: "pending",
-    tanggal: "05 Mei 2026",
-    poli: "Poli Penyakit Dalam",
-    rincian: [
-      {
-        id_rincian: "RNC-001",
-        jenis: "konsultasi",
-        nama_layanan: "Konsultasi Dokter Spesialis Dalam",
-        jumlah: 1,
-        subtotal: 250000,
-        is_covered_bpjs: true,
-      },
-      {
-        id_rincian: "RNC-002",
-        jenis: "obat",
-        nama_layanan: "Obat Non-Formularium (Permintaan Pasien)",
-        jumlah: 1,
-        subtotal: 150000,
-        is_covered_bpjs: false,
-      },
-    ],
-  },
-  {
-    id: "INV-20260420-501",
-    kunjungan_id: "KJN-002",
-    pasien_id: "PSN-001",
-    total_biaya: 150000,
-    status: "lunas",
-    tanggal: "20 Apr 2026",
-    poli: "Poli Gigi",
-    rincian: [
-      {
-        id_rincian: "RNC-003",
-        jenis: "tindakan",
-        nama_layanan: "Pencabutan Gigi Bungsu",
-        jumlah: 1,
-        subtotal: 150000,
-        is_covered_bpjs: false,
-      },
-    ],
-  },
-  {
-    id: "INV-20260312-104",
-    kunjungan_id: "KJN-003",
-    pasien_id: "PSN-001",
-    total_biaya: 0,
-    status: "lunas",
-    tanggal: "12 Mar 2026",
-    poli: "Poli Mata",
-    rincian: [
-      {
-        id_rincian: "RNC-004",
-        jenis: "konsultasi",
-        nama_layanan: "Pemeriksaan Mata Rutin",
-        jumlah: 1,
-        subtotal: 100000,
-        is_covered_bpjs: true,
-      },
-    ],
-  },
-];
+export const konsolidasiTagihan = async (pasienId: string, kunjunganId: string, poli: string) => {
+  try {
+    const pasienSnap = await getDoc(doc(db, "pasien", pasienId));
+    const pasienData = pasienSnap.exists() ? pasienSnap.data() as Pasien : null;
+    const isBpjs = pasienData?.tipe_penjamin === "bpjs";
 
-export const getTagihanById = (id: string): Tagihan | undefined => {
-  return MOCK_TAGIHAN.find((t) => t.id === id);
+    const [medis, lab, farmasi] = await Promise.all([
+      fetchExternalMedis(kunjunganId),
+      fetchExternalLab(kunjunganId),
+      fetchExternalFarmasi(kunjunganId)
+    ]);
+
+    const rincianGabungan: RincianTagihan[] = [...medis, ...lab, ...farmasi].map(item => ({
+      ...item,
+      is_covered_bpjs: isBpjs ? item.is_covered_bpjs : false
+    }));
+
+    const totalIurBiaya = rincianGabungan.reduce((sum, item) => {
+      const itemIur = item.is_covered_bpjs ? 0 : item.subtotal;
+      return sum + itemIur;
+    }, 0);
+
+    const idTagihan = `INV-${new Date().getTime()}`;
+    const newTagihan: Tagihan = {
+      id_tagihan: idTagihan,
+      pasien_id: pasienId,
+      tanggal: new Date().toISOString().split('T')[0],
+      status: "pending",
+      total_biaya: totalIurBiaya,
+      poli: poli,
+      rincian: rincianGabungan
+    };
+
+    await setDoc(doc(db, "tagihan", idTagihan), {
+      ...newTagihan,
+      createdAt: serverTimestamp()
+    });
+
+    return newTagihan;
+  } catch (error) {
+    console.error("Gagal melakukan konsolidasi:", error);
+    throw error;
+  }
 };
+

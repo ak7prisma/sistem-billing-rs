@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FiSearch } from "react-icons/fi";
-import { MOCK_TAGIHAN, getTagihanById } from "@/lib/service/billing";
+import { MOCK_TAGIHAN, getTagihanById } from "@/lib/service/mock";
 import InvoiceCard from "@/components/billing/InvoiceCard";
 import InvoiceModal from "@/components/billing/InvoiceModal";
 import ReceiptModal from "@/components/billing/ReceiptModal";
@@ -15,7 +15,7 @@ export default function HistoryPage() {
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
   const filteredHistory = MOCK_TAGIHAN.filter(item => 
-    item.poli.toLowerCase().includes(search.toLowerCase()) || 
+    (item.poli || "").toLowerCase().includes(search.toLowerCase()) || 
     item.id.toLowerCase().includes(search.toLowerCase())
   );
 

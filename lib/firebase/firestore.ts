@@ -11,10 +11,11 @@ import {
   where, 
   orderBy, 
   serverTimestamp,
-  Timestamp
+  Timestamp,
+  writeBatch
 } from "firebase/firestore";
 import { db } from "./config";
-import { Tagihan, Pasien, Pembayaran } from "../types";
+import { Tagihan, Pasien, Pembayaran, RincianTagihan } from "../types";
 
 export const addData = async (collectionName: string, data: any) => {
   return await addDoc(collection(db, collectionName), {
@@ -37,6 +38,15 @@ export const getData = async (collectionName: string, id: string) => {
   return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
 };
 
+// Tagihan Helpers
+export const createTagihan = async (tagihan: Omit<Tagihan, "id_tagihan">) => {
+  return await addDoc(collection(db, "tagihan"), {
+    ...tagihan,
+    tanggal: serverTimestamp(),
+    status: tagihan.status || "pending",
+  });
+};
+
 export const getTagihanByPasien = async (pasienId: string) => {
   const q = query(
     collection(db, "tagihan"), 
@@ -44,23 +54,57 @@ export const getTagihanByPasien = async (pasienId: string) => {
     orderBy("tanggal", "desc")
   );
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tagihan));
+  return querySnapshot.docs.map(doc => ({ 
+    id_tagihan: doc.id, 
+    ...doc.data() 
+  } as Tagihan));
 };
 
 export const getAllTagihan = async () => {
   const q = query(collection(db, "tagihan"), orderBy("tanggal", "desc"));
   const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Tagihan));
+  return querySnapshot.docs.map(doc => ({ 
+    id_tagihan: doc.id, 
+    ...doc.data() 
+  } as Tagihan));
 };
 
-export const updateTagihanStatus = async (tagihanId: string, status: string) => {
+export const updateTagihanStatus = async (tagihanId: string, status: Tagihan["status"]) => {
   const docRef = doc(db, "tagihan", tagihanId);
-  return await updateDoc(docRef, { status, updatedAt: serverTimestamp() });
-};
-
-export const savePembayaran = async (pembayaran: Partial<Pembayaran>) => {
-  return await addDoc(collection(db, "pembayaran"), {
-    ...pembayaran,
-    tanggal_pembayaran: serverTimestamp(),
+  return await updateDoc(docRef, { 
+    status, 
+    updatedAt: serverTimestamp() 
   });
 };
+
+// Pembayaran Helpers
+export const processPembayaran = async (pembayaran: Omit<Pembayaran, "id_pembayaran" | "tanggal_pembayaran">) => {
+  const batch = writeBatch(db);
+  
+  // 1. Create Pembayaran Record
+  const pembayaranRef = doc(collection(db, "pembayaran"));
+  batch.set(pembayaranRef, {
+    ...pembayaran,
+    tanggal_pembayaran: serverTimestamp(),
+    status: "berhasil" // In prototype, assume success
+  });
+
+  // 2. Update Tagihan Status
+  const tagihanRef = doc(db, "tagihan", pembayaran.tagihan_id);
+  batch.update(tagihanRef, { 
+    status: "lunas",
+    updatedAt: serverTimestamp()
+  });
+
+  await batch.commit();
+  return pembayaranRef.id;
+};
+
+export const getPembayaranByTagihan = async (tagihanId: string) => {
+  const q = query(collection(db, "pembayaran"), where("tagihan_id", "==", tagihanId));
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot.empty) return null;
+  const doc = querySnapshot.docs[0];
+  return { id_pembayaran: doc.id, ...doc.data() } as Pembayaran;
+};
+

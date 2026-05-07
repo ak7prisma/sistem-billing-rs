@@ -1,49 +1,86 @@
 export type UserRole = "kasir" | "manajer" | "pasien";
+export type TagihanStatus = "pending" | "lunas" | "gagal";
 
 export interface User {
-  id: string;
+  uid: string;
   email: string;
-  role: UserRole;
   nama: string;
+  role: UserRole;
+  photoURL?: string;
+  createdAt?: any;
+  lastLogin?: any;
 }
 
+// External Master Data
+export interface Obat {
+  id_obat: string;
+  nama_obat: string;
+  harga: number;
+}
+
+export interface LayananMedis {
+  id_layanan_medis: string;
+  nama_layanan: string;
+  harga: number;
+}
+
+export interface LayananLabor {
+  id_layanan_labor: string;
+  nama_layanan: string;
+  harga: number;
+}
+
+// Internal Data
 export interface Pasien {
-  id: string;
+  id: string; // id_pasien
   no_rm: string;
   nama: string;
   tipe_penjamin: "bpjs" | "umum";
   no_bpjs?: string;
+  alamat?: string;
+  email?: string; // For auth link
 }
 
 export interface RincianTagihan {
   id_rincian: string;
-  jenis: "lab" | "obat" | "tindakan" | "konsultasi";
+  id_layanan_labor?: string;
+  id_layanan_medis?: string;
+  id_obat?: string;
   nama_layanan: string;
+  jenis: "obat" | "medis" | "laboratorium";
   jumlah: number;
   subtotal: number;
-  is_covered_bpjs: boolean;
+  tanggal?: string;
+  is_covered_bpjs?: boolean;
 }
 
-export type TagihanStatus = "pending" | "lunas" | "gagal";
-
 export interface Tagihan {
-  id: string;
-  kunjungan_id: string;
+  id_tagihan: string;
   pasien_id: string;
-  total_biaya: number;
+  poli?: string; // Optional but needed for UI
+  tanggal: any; // timestamp
   status: TagihanStatus;
-  tanggal: string; // ISO string or Firestore Timestamp
-  poli: string;
+  total_biaya: number;
   rincian: RincianTagihan[];
 }
 
 export interface Pembayaran {
-  id: string;
+  id_pembayaran: string;
   tagihan_id: string;
-  metode: "tunai" | "qris" | "transfer";
+  metode_pembayaran: "tunai" | "qris" | "transfer";
+  tanggal_pembayaran: any; // timestamp
   jumlah_pembayaran: number;
   cover_bpjs: number;
   iur_biaya: number;
   status: "berhasil" | "gagal";
-  tanggal_pembayaran: string;
 }
+
+export interface RincianPembayaran {
+  id_rincian_pembayaran: string;
+  pembayaran_id: string;
+  nama_item: string;
+  jumlah: number;
+  subtotal: number;
+}
+
+

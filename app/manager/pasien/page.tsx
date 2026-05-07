@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { FiSearch, FiUser, FiActivity, FiMapPin, FiPlus } from "react-icons/fi";
 import PageHeader from "@/components/shared/PageHeader";
+import SearchBar from "@/components/shared/SearchBar";
 
 const MOCK_PASIEN = [
   { id: "P-001", rm: "00-11-22", nama: "Budi Santoso", tipe: "BPJS", lastVisit: "01 Mei 2024", totalBill: "Rp 750.000" },
@@ -26,21 +27,17 @@ export default function PasienManager() {
         subtitle="Kelola data identitas dan histori kunjungan pasien."
         badge="Master Data"
       >
+        <SearchBar 
+          value={search} 
+          onChange={setSearch} 
+          placeholder="Cari Nama / RM Pasien..." 
+          className="md:min-w-[300px]"
+        />
         <button className="bg-slate-900 text-white px-8 py-3 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg shadow-slate-900/20 hover:bg-slate-800 transition flex items-center gap-2">
           <FiPlus /> Tambah Pasien
         </button>
       </PageHeader>
 
-      <div className="relative group">
-        <FiSearch className="absolute left-4 top-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
-        <input 
-          type="text" 
-          placeholder="Cari Nama Pasien atau No. RM..." 
-          className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-800 font-bold shadow-sm transition text-sm"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {filteredPasien.map((p) => (

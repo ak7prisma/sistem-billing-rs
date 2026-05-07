@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
-import { FiMail, FiLock, FiArrowRight, FiLoader } from "react-icons/fi";
+import { FiMail, FiLock, FiArrowRight, FiLoader, FiEye, FiEyeOff } from "react-icons/fi";
 import { useLogin } from "@/lib/hooks/useLogin";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const { performLogin, loading, error, setError } = useLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -48,15 +49,23 @@ export default function LoginPage() {
           <div className="relative group">
             <FiLock className="absolute left-4 top-4 text-slate-400 group-focus-within:text-violet-500 transition-colors" />
             <input 
-              type="password" 
+              type={showPassword ? "text" : "password"} 
               placeholder="Password" 
-              className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 font-bold transition text-sm"
+              className="w-full pl-12 pr-12 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-violet-500 text-slate-800 font-bold transition text-sm"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+            <button 
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-4 top-4 text-slate-400 hover:text-violet-500 transition-colors"
+            >
+              {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+            </button>
           </div>
         </div>
+
 
         <button 
           type="submit"

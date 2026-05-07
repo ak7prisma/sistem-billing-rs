@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FiCheckCircle } from "react-icons/fi";
-import { MOCK_TAGIHAN, getTagihanById } from "@/lib/service/billing";
+import { MOCK_TAGIHAN, getTagihanById } from "@/lib/service/mock";
 import InvoiceCard from "@/components/billing/InvoiceCard";
 import ActiveInvoiceCard from "@/components/billing/ActiveInvoiceCard";
 import InvoiceModal from "@/components/billing/InvoiceModal";
