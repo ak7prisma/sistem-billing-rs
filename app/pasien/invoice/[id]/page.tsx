@@ -51,7 +51,7 @@ export default function InvoiceDetailPage() {
               </div>
               <div>
                 <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">Rincian <span className="text-violet-600">Layanan</span></h1>
-                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">{tagihan.id}</p>
+                <p className="text-xs text-slate-500 font-bold uppercase tracking-widest mt-1">{tagihan.id_tagihan}</p>
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">

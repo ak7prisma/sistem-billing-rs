@@ -63,7 +63,7 @@ export default function ReceiptPage() {
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">No:</span>
-            <span className="font-bold uppercase">{tagihan.id}</span>
+            <span className="font-bold uppercase">{tagihan.id_tagihan}</span>
           </div>
           <div className="flex justify-between">
             <span className="text-slate-400">Pas:</span>
