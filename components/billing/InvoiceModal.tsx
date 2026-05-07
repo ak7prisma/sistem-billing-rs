@@ -138,12 +138,30 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
 
 
         <div className="p-6 md:p-8 bg-slate-50 border-t border-slate-200 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="text-center md:text-left">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Iur Biaya</p>
-            <div className="text-3xl font-black text-violet-600 tracking-tighter">
-              {formatCurrency(tagihan.total_biaya)}
-            </div>
+          <div className="text-center md:text-left space-y-1">
+            {(() => {
+              const totalTagihan = rincian.reduce((sum, r) => sum + r.subtotal, 0);
+              const totalCover = rincian.reduce((sum, r) => sum + (r.is_covered_bpjs ? r.subtotal : 0), 0);
+              const iurBiaya = totalTagihan - totalCover;
+              return (
+                <>
+                  {totalCover > 0 && (
+                    <div className="flex items-center gap-3">
+                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Ditanggung BPJS</p>
+                      <p className="text-sm font-black text-emerald-500">- {formatCurrency(totalCover)}</p>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 md:flex-col md:items-start md:gap-0">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Iur Biaya Pasien</p>
+                    <div className="text-3xl font-black text-violet-600 tracking-tighter">
+                      {formatCurrency(iurBiaya > 0 ? iurBiaya : (tagihan.total_biaya ?? 0))}
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
           </div>
+
           
           <div className="flex gap-3 w-full md:w-auto">
             <button 
