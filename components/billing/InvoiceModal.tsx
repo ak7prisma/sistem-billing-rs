@@ -49,7 +49,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
   const handlePay = async (metode: "tunai" | "qris" | "transfer") => {
     setLoading(true);
     try {
-      await prosesPembayaran(tagihan, metode);
+      await prosesPembayaran(tagihan, metode, rincian);
       alert("Pembayaran Berhasil!");
       onSuccess?.();
       onClose();

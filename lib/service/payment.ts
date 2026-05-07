@@ -1,67 +1,79 @@
-import { doc, setDoc, writeBatch, serverTimestamp, collection } from "firebase/firestore";
+import { doc, getDoc, writeBatch, serverTimestamp, collection, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { Tagihan, Pembayaran, RincianPembayaran } from "../types";
+import { Tagihan, Pembayaran, RincianTagihan, RincianPembayaran } from "../types";
 
-export const prosesPembayaran = async (tagihan: Tagihan, metode: "tunai" | "qris" | "transfer") => {
-  try {
-    const batch = writeBatch(db);
-    const idPembayaran = `PAY-${Date.now()}`;
-    
-    // 1. Hitung Cover BPJS vs Iur Biaya
-    let totalCoverBpjs = 0;
-    let totalIurBiaya = 0;
-    
-    tagihan.rincian.forEach(item => {
-      if (item.is_covered_bpjs) {
-        totalCoverBpjs += item.subtotal;
-      } else {
-        totalIurBiaya += item.subtotal;
-      }
-    });
+/**
+ * prosesPembayaran
+ *
+ * Menerima rincian yang sudah di-fetch dari InvoiceModal (bisa dari embedded atau
+ * koleksi rinci_tagihan). Mengambil data pasien untuk menentukan tipe penjamin
+ * sehingga perhitungan cover_bpjs dan iur_biaya akurat.
+ */
+export const prosesPembayaran = async (
+  tagihan: Tagihan,
+  metode: "tunai" | "qris" | "transfer",
+  rincian: RincianTagihan[]
+) => {
+  const idPembayaran = `PAY-${Date.now()}`;
 
-    // 2. Buat Record Pembayaran
-    const newPembayaran: Pembayaran = {
-      id_pembayaran: idPembayaran,
-      tagihan_id: tagihan.id_tagihan,
-      metode_pembayaran: metode,
-      tanggal_pembayaran: new Date().toISOString(),
-      jumlah_pembayaran: tagihan.total_biaya,
-      cover_bpjs: totalCoverBpjs,
-      iur_biaya: totalIurBiaya,
-      status: "berhasil"
+  // Ambil tipe penjamin dari data pasien
+  const pasienSnap = await getDoc(doc(db, "pasien", tagihan.pasien_id));
+  const isBpjs = pasienSnap.exists() && pasienSnap.data().tipe_penjamin === "bpjs";
+
+  // Hitung cover BPJS dan iur biaya
+  let totalCoverBpjs = 0;
+  let totalIurBiaya = 0;
+
+  (rincian ?? []).forEach(item => {
+    if (isBpjs && item.is_covered_bpjs) {
+      totalCoverBpjs += item.subtotal;
+    } else {
+      totalIurBiaya += item.subtotal;
+    }
+  });
+
+  const jumlahPembayaran = totalIurBiaya; // Yang dibayar pasien
+
+  const batch = writeBatch(db);
+
+  // Simpan pembayaran
+  const newPembayaran: Pembayaran = {
+    id_pembayaran: idPembayaran,
+    tagihan_id: tagihan.id_tagihan,
+    metode_pembayaran: metode,
+    tanggal_pembayaran: new Date().toISOString(),
+    jumlah_pembayaran: jumlahPembayaran,
+    cover_bpjs: totalCoverBpjs,
+    iur_biaya: totalIurBiaya,
+    status: "berhasil"
+  };
+
+  batch.set(doc(db, "pembayaran", idPembayaran), {
+    ...newPembayaran,
+    createdAt: serverTimestamp()
+  });
+
+  // Simpan rincian_pembayaran
+  (rincian ?? []).forEach((item, index) => {
+    const idRincianPay = `${idPembayaran}-R-${index}`;
+    const rincianData: RincianPembayaran = {
+      id_rincian_pembayaran: idRincianPay,
+      pembayaran_id: idPembayaran,
+      nama_item: item.nama_layanan,
+      jumlah: item.jumlah,
+      subtotal: item.subtotal
     };
+    batch.set(doc(db, "rincian_pembayaran", idRincianPay), rincianData);
+  });
 
-    const payRef = doc(db, "pembayaran", idPembayaran);
-    batch.set(payRef, {
-      ...newPembayaran,
-      createdAt: serverTimestamp()
-    });
+  // Update tagihan: status lunas + simpan total yang benar
+  batch.update(doc(db, "tagihan", tagihan.id_tagihan), {
+    status: "lunas",
+    total_biaya: jumlahPembayaran,
+    cover_bpjs: totalCoverBpjs,
+    updatedAt: serverTimestamp()
+  });
 
-    // 3. Buat Rincian Pembayaran
-    tagihan.rincian.forEach((item, index) => {
-      const idRincianPay = `${idPembayaran}-R-${index}`;
-      const rincianPayRef = doc(db, "rincian_pembayaran", idRincianPay);
-      
-      const rincianData: RincianPembayaran = {
-        id_rincian_pembayaran: idRincianPay,
-        pembayaran_id: idPembayaran,
-        nama_item: item.nama_layanan,
-        jumlah: item.jumlah,
-        subtotal: item.subtotal
-      };
-      
-      batch.set(rincianPayRef, rincianData);
-    });
-
-    // 4. Update Status Tagihan
-    const tagihanRef = doc(db, "tagihan", tagihan.id_tagihan);
-    batch.update(tagihanRef, { status: "lunas" });
-
-    await batch.commit();
-    return newPembayaran;
-
-  } catch (error) {
-    console.error("Gagal memproses pembayaran:", error);
-    throw error;
-  }
+  await batch.commit();
+  return newPembayaran;
 };
