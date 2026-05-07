@@ -16,18 +16,21 @@ export interface Obat {
   id_obat: string;
   nama_obat: string;
   harga: number;
+  is_covered_bpjs: boolean;
 }
 
 export interface LayananMedis {
   id_layanan_medis: string;
   nama_layanan: string;
   harga: number;
+  is_covered_bpjs: boolean;
 }
 
 export interface LayananLabor {
   id_layanan_labor: string;
   nama_layanan: string;
   harga: number;
+  is_covered_bpjs: boolean;
 }
 
 // Internal Data

@@ -9,7 +9,6 @@ import { MASTER_OBAT, MASTER_LAYANAN_MEDIS, MASTER_LAYANAN_LABOR } from "../data
 export const fetchExternalMedis = async (kunjunganId: string): Promise<RincianTagihan[]> => {
   await new Promise(resolve => setTimeout(resolve, 800));
   
-  // Ambil 1-2 layanan medis acak
   const randomMedis = MASTER_LAYANAN_MEDIS[Math.floor(Math.random() * MASTER_LAYANAN_MEDIS.length)];
   
   return [
@@ -21,7 +20,7 @@ export const fetchExternalMedis = async (kunjunganId: string): Promise<RincianTa
       jumlah: 1,
       subtotal: randomMedis.harga,
       tanggal: new Date().toISOString().split('T')[0],
-      is_covered_bpjs: Math.random() > 0.3 // 70% chance covered
+      is_covered_bpjs: randomMedis.is_covered_bpjs // Gunakan dari Master Data
     }
   ];
 };
@@ -40,7 +39,7 @@ export const fetchExternalLab = async (kunjunganId: string): Promise<RincianTagi
       jumlah: 1,
       subtotal: randomLab.harga,
       tanggal: new Date().toISOString().split('T')[0],
-      is_covered_bpjs: Math.random() > 0.5 // 50% chance covered
+      is_covered_bpjs: randomLab.is_covered_bpjs // Gunakan dari Master Data
     }
   ];
 };
@@ -49,6 +48,7 @@ export const fetchExternalFarmasi = async (kunjunganId: string): Promise<Rincian
   await new Promise(resolve => setTimeout(resolve, 1000));
   
   const randomObat = MASTER_OBAT[Math.floor(Math.random() * MASTER_OBAT.length)];
+  const qty = Math.floor(Math.random() * 5) + 1;
   
   return [
     {
@@ -56,10 +56,10 @@ export const fetchExternalFarmasi = async (kunjunganId: string): Promise<Rincian
       id_obat: randomObat.id_obat,
       nama_layanan: randomObat.nama_obat,
       jenis: "obat",
-      jumlah: Math.floor(Math.random() * 5) + 1,
-      subtotal: randomObat.harga * 10, // Simulasi harga resep
+      jumlah: qty,
+      subtotal: randomObat.harga * qty,
       tanggal: new Date().toISOString().split('T')[0],
-      is_covered_bpjs: true
+      is_covered_bpjs: randomObat.is_covered_bpjs // Gunakan dari Master Data
     }
   ];
 };

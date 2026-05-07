@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { FiX, FiActivity, FiCreditCard, FiPrinter, FiShield, FiLoader } from "react-icons/fi";
-import { Tagihan, RincianTagihan } from "@/lib/types";
+import { FiX, FiActivity, FiCreditCard, FiPrinter, FiShield, FiLoader, FiUser } from "react-icons/fi";
+import { Tagihan, RincianTagihan, Pasien } from "@/lib/types";
 import { prosesPembayaran } from "@/lib/service/payment";
-import { getRinciTagihanByTagihan } from "@/lib/firebase/firestore";
+import { getRinciTagihanByTagihan, getData } from "@/lib/firebase/firestore";
 import BillingBreakdown from "./BillingBreakdown";
 import StatusBadge from "../ui/StatusBadge";
 
@@ -18,30 +18,31 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
   const [loading, setLoading] = useState(false);
   const [rincian, setRincian] = useState<RincianTagihan[]>([]);
   const [loadingRincian, setLoadingRincian] = useState(false);
+  const [pasien, setPasien] = useState<Pasien | null>(null);
 
   useEffect(() => {
     if (!isOpen || !tagihan) return;
 
-    // Jika tagihan sudah punya rincian embedded, gunakan langsung
-    if (tagihan.rincian && tagihan.rincian.length > 0) {
-      setRincian(tagihan.rincian);
-      return;
-    }
-
-    // Jika tidak, fetch dari koleksi rinci_tagihan
-    const fetchRincian = async () => {
+    const fetchData = async () => {
       setLoadingRincian(true);
       try {
-        const data = await getRinciTagihanByTagihan(tagihan.id_tagihan);
-        setRincian(data);
+        const pData = await getData("pasien", tagihan.pasien_id) as Pasien;
+        setPasien(pData);
+
+        if (tagihan.rincian && tagihan.rincian.length > 0) {
+          setRincian(tagihan.rincian);
+        } else {
+          const data = await getRinciTagihanByTagihan(tagihan.id_tagihan);
+          setRincian(data);
+        }
       } catch (err) {
-        console.error("Gagal memuat rincian:", err);
+        console.error("Gagal memuat data:", err);
       } finally {
         setLoadingRincian(false);
       }
     };
 
-    fetchRincian();
+    fetchData();
   }, [isOpen, tagihan]);
 
   if (!isOpen || !tagihan) return null;
@@ -60,7 +61,6 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
     }
   };
 
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -68,6 +68,8 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  const tipePenjamin = (pasien?.tipe_penjamin?.toLowerCase() === "bpjs") ? "bpjs" : "umum";
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 md:p-6 animate-in fade-in duration-300">
@@ -91,10 +93,19 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
 
         <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="space-y-1">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pasien</p>
-              <h3 className="text-lg font-bold text-slate-800">Budi Santoso</h3>
-              <p className="text-xs text-slate-500">RM: 00-12-34-56 • BPJS Kesehatan</p>
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 shrink-0">
+                <FiUser size={24} />
+              </div>
+              <div className="space-y-0.5">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Data Pasien</p>
+                <h3 className="text-lg font-bold text-slate-800">{pasien?.nama || "Loading..."}</h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  {pasien?.no_rm || "-"} • <span className={tipePenjamin === "bpjs" ? "text-emerald-600" : "text-slate-600"}>
+                    {tipePenjamin === "bpjs" ? "BPJS Kesehatan" : "Pasien Umum (Mandiri)"}
+                  </span>
+                </p>
+              </div>
             </div>
             <div className="space-y-1 md:text-right">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Layanan</p>
@@ -110,7 +121,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
                 <span className="text-xs font-bold uppercase tracking-widest">Memuat Rincian...</span>
               </div>
             ) : (
-              <BillingBreakdown rincian={rincian} tipePenjamin="bpjs" />
+              <BillingBreakdown rincian={rincian} tipePenjamin={tipePenjamin} />
             )}
           </div>
         </div>
@@ -154,7 +165,7 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
                   <div className="flex items-center gap-3 md:flex-col md:items-start md:gap-0">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Total Iur Biaya Pasien</p>
                     <div className="text-3xl font-black text-violet-600 tracking-tighter">
-                      {formatCurrency(iurBiaya > 0 ? iurBiaya : (tagihan.total_biaya ?? 0))}
+                      {formatCurrency(loadingRincian ? (tagihan.total_biaya ?? 0) : iurBiaya)}
                     </div>
                   </div>
                 </>

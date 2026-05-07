@@ -69,45 +69,34 @@ export default function KasirDashboard() {
           onChange={setSearch} 
           placeholder="Cari No. Invoice / Poli..." 
         />
-        <button 
-          onClick={async () => {
-            const ok = confirm("Tarik data tindakan & obat dari modul lain?");
-            if (ok) {
-              try {
-                const res = await konsolidasiTagihan("P-001", "KUN-123", "Poli Jantung");
-                alert(`Berhasil! Tagihan baru dibuat: ${res.id_tagihan}`);
-                fetchData();
-              } catch (e) {
-                alert("Gagal menarik data.");
-              }
-            }
-          }}
-          className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-emerald-600 text-white px-6 py-3 rounded-2xl text-[10px] font-black shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 transition uppercase tracking-widest"
-        >
-          <FiPlus /> Simulasi Tarik Data
-        </button>
       </PageHeader>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center font-black">24</div>
+          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center font-black">
+            {tagihans.filter(t => t.status === "pending").length.toString().padStart(2, '0')}
+          </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Menunggu Bayar</p>
             <p className="text-sm font-black text-slate-800 tracking-tight">Tagihan Pending</p>
           </div>
         </div>
         <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-black">15</div>
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center font-black">
+            {tagihans.filter(t => t.status === "lunas").length.toString().padStart(2, '0')}
+          </div>
           <div>
             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Sudah Lunas</p>
-            <p className="text-sm font-black text-slate-800 tracking-tight">Transaksi Hari Ini</p>
+            <p className="text-sm font-black text-slate-800 tracking-tight">Transaksi Selesai</p>
           </div>
         </div>
         <div className="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-black">08</div>
+          <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center font-black">
+            {tagihans.filter(t => t.status === "gagal").length.toString().padStart(2, '0')}
+          </div>
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Revisi / Gagal</p>
-            <p className="text-sm font-black text-slate-800 tracking-tight">Butuh Perhatian</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Butuh Perhatian</p>
+            <p className="text-sm font-black text-slate-800 tracking-tight">Status Gagal</p>
           </div>
         </div>
       </div>

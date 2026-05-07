@@ -38,7 +38,15 @@ export const getData = async (collectionName: string, id: string) => {
   return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
 };
 
-// Tagihan Helpers
+export const getAllData = async (collectionName: string) => {
+  const q = query(collection(db, collectionName));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ 
+    id: doc.id, 
+    ...doc.data() 
+  }));
+};
+
 export const createTagihan = async (tagihan: Omit<Tagihan, "id_tagihan">) => {
   return await addDoc(collection(db, "tagihan"), {
     ...tagihan,
@@ -77,14 +85,12 @@ export const updateTagihanStatus = async (tagihanId: string, status: Tagihan["st
   });
 };
 
-// Rinci Tagihan Helpers
 export const getRinciTagihanByTagihan = async (tagihanId: string): Promise<RincianTagihan[]> => {
   const q = query(collection(db, "rinci_tagihan"), where("id_tagihan", "==", tagihanId));
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(d => ({ id_rincian: d.id, ...d.data() } as RincianTagihan));
 };
 
-// Pembayaran Helpers
 export const processPembayaran = async (pembayaran: Omit<Pembayaran, "id_pembayaran" | "tanggal_pembayaran">) => {
   const batch = writeBatch(db);
   
