@@ -130,4 +130,11 @@ export const getPembayaranByTagihan = async (tagihanId: string) => {
   const doc = querySnapshot.docs[0];
   return { id_pembayaran: doc.id, ...doc.data() } as Pembayaran;
 };
-
+export const getAllPembayaran = async () => {
+  const q = query(collection(db, "pembayaran"), orderBy("tanggal_pembayaran", "desc"));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ 
+    id_pembayaran: doc.id, 
+    ...doc.data() 
+  } as Pembayaran));
+};

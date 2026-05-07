@@ -6,9 +6,10 @@ import {
   FiTrendingUp, 
   FiUsers, 
   FiActivity,
+  FiFileText,
+  FiLoader,
   FiCalendar,
-  FiFilter,
-  FiFileText
+  FiFilter
 } from "react-icons/fi";
 import { 
   BarChart, 
@@ -23,42 +24,82 @@ import {
   Cell
 } from "recharts";
 import PageHeader from "@/components/shared/PageHeader";
-
-const DATA_REVENUE = [
-  { name: "Senin", total: 4500000 },
-  { name: "Selasa", total: 5200000 },
-  { name: "Rabu", total: 3800000 },
-  { name: "Kamis", total: 6100000 },
-  { name: "Jumat", total: 5900000 },
-  { name: "Sabtu", total: 4200000 },
-  { name: "Minggu", total: 2100000 },
-];
-
-const DATA_POLI = [
-  { name: "Poli Jantung", count: 45 },
-  { name: "Poli Umum", count: 120 },
-  { name: "Radiologi", count: 35 },
-  { name: "Laboratorium", count: 85 },
-  { name: "Farmasi", count: 200 },
-];
+import { getAllPembayaran, getAllTagihan } from "@/lib/firebase/firestore";
+import { formatRupiah } from "../../lib/utils/currency";
 
 const COLORS = ["#8b5cf6", "#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
 
 export default function ManagerDashboard() {
   const [mounted, setMounted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [pembayarans, setPembayarans] = useState<any[]>([]);
+  const [tagihans, setTagihans] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
+    fetchData();
   }, []);
 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [payData, tagData] = await Promise.all([
+        getAllPembayaran(),
+        getAllTagihan()
+      ]);
+      setPembayarans(payData);
+      setTagihans(tagData);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Aggregation Logic
+  const totalRevenue = pembayarans.reduce((sum, p) => sum + (p.jumlah_pembayaran || 0), 0);
+  const totalClaims = pembayarans.reduce((sum, p) => sum + (p.cover_bpjs || 0), 0);
+  const totalTransactions = pembayarans.length;
+  const totalPatients = tagihans.length;
+
+  // Revenue by Day (Last 7 Days)
+  const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const revenueByDay = days.map((day, idx) => {
+    const total = pembayarans
+      .filter(p => {
+        const d = p.tanggal_pembayaran?.seconds ? new Date(p.tanggal_pembayaran.seconds * 1000) : new Date();
+        return d.getDay() === idx;
+      })
+      .reduce((sum, p) => sum + (p.jumlah_pembayaran || 0), 0);
+    return { name: day, total };
+  });
+
+  const sortedRevenue = [...revenueByDay.slice(1), revenueByDay[0]];
+
+  const poliCounts: Record<string, number> = {};
+  tagihans.forEach(t => {
+    const p = t.poli || "Umum";
+    poliCounts[p] = (poliCounts[p] || 0) + 1;
+  });
+  const dataPoli = Object.entries(poliCounts).map(([name, count]) => ({ name, count }));
+
   const stats = [
-    { label: "Total Pendapatan", value: "Rp 31.850.000", delta: "+12.5%", icon: FiDollarSign, color: "bg-blue-500" },
-    { label: "Transaksi Berhasil", value: "1,240", delta: "+8.2%", icon: FiTrendingUp, color: "bg-emerald-500" },
-    { label: "Pasien Terdaftar", value: "8,432", delta: "+4.1%", icon: FiUsers, color: "bg-violet-500" },
-    { label: "Rata-rata Billing", value: "Rp 256.000", delta: "-2.4%", icon: FiActivity, color: "bg-amber-500" },
+    { label: "Pendapatan Pasien", value: formatRupiah(totalRevenue), delta: "Real-time", icon: FiDollarSign, color: "bg-blue-500" },
+    { label: "Klaim BPJS", value: formatRupiah(totalClaims), delta: "Pending", icon: FiActivity, color: "bg-emerald-500" },
+    { label: "Total Transaksi", value: totalTransactions.toString(), delta: "Selesai", icon: FiTrendingUp, color: "bg-violet-500" },
+    { label: "Total Kunjungan", value: totalPatients.toString(), delta: "Terdaftar", icon: FiUsers, color: "bg-amber-500" },
   ];
 
   if (!mounted) return null;
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <FiLoader className="w-10 h-10 text-violet-500 animate-spin mb-4" />
+        <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">Menganalisa Data Keuangan...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10 pb-10">
@@ -100,7 +141,7 @@ export default function ManagerDashboard() {
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={DATA_REVENUE}>
+              <AreaChart data={sortedRevenue}>
                 <defs>
                   <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
@@ -127,7 +168,7 @@ export default function ManagerDashboard() {
           </div>
           <div className="h-[300px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={DATA_POLI}>
+              <BarChart data={dataPoli}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} dy={10} />
                 <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} />
@@ -136,7 +177,7 @@ export default function ManagerDashboard() {
                    contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px'}}
                 />
                 <Bar dataKey="count" radius={[10, 10, 0, 0]} barSize={40}>
-                  {DATA_POLI.map((entry, index) => (
+                  {dataPoli.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Bar>
