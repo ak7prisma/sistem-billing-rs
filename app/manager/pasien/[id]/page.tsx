@@ -1,13 +1,11 @@
 "use client";
 
-import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { 
   FiChevronLeft, 
   FiUser, 
   FiMail, 
-  FiMapPin, 
-  FiActivity, 
+  FiMapPin,
   FiClock, 
   FiCreditCard, 
   FiLoader,
@@ -62,9 +60,9 @@ export default function PasienDetail() {
         {/* Profile Card */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
-            <div className="h-32 bg-gradient-to-br from-blue-600 to-indigo-700 relative">
+            <div className="h-32 bg-linear-to-br from-blue-600 to-indigo-700 relative">
                <div className="absolute -bottom-10 left-8">
-                 <div className="w-24 h-24 bg-white rounded-[2rem] p-1 shadow-xl">
+                 <div className="w-24 h-24 bg-white rounded-4xl p-1 shadow-xl">
                     <div className="w-full h-full bg-slate-50 rounded-[1.8rem] flex items-center justify-center text-slate-200">
                        <FiUser size={40} />
                     </div>
@@ -136,11 +134,13 @@ export default function PasienDetail() {
             </div>
 
             <div className="space-y-4">
-              {loadingHistory ? (
+              {loadingHistory && (
                 <div className="py-20 flex justify-center">
                   <FiLoader className="w-8 h-8 text-blue-600 animate-spin" />
                 </div>
-              ) : history.length > 0 ? (
+              )}
+              
+              {!loadingHistory && history.length > 0 && (
                 history.map((item) => (
                   <div key={item.id_tagihan} className="group p-6 rounded-3xl border border-slate-50 hover:border-blue-100 hover:bg-blue-50/20 transition-all duration-300 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
@@ -170,7 +170,9 @@ export default function PasienDetail() {
                     </div>
                   </div>
                 ))
-              ) : (
+              )}
+              
+              {!loadingHistory && history.length === 0 && (
                 <div className="text-center py-20">
                    <p className="text-slate-300 font-black uppercase tracking-widest text-[10px]">Belum ada histori kunjungan.</p>
                 </div>

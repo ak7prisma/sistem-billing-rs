@@ -72,7 +72,7 @@ export default function KasirDashboard() {
         />
       </div>
 
-      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden min-h-[400px] flex flex-col">
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden min-h-100 flex flex-col">
         {loading ? (
           <div className="flex-1 flex flex-col items-center justify-center p-12">
             <div className="w-12 h-12 border-4 border-slate-200 border-t-violet-500 rounded-full animate-spin mb-4"></div>
@@ -84,11 +84,11 @@ export default function KasirDashboard() {
               <FiSearch className="text-slate-300 w-8 h-8" />
             </div>
             <p className="text-slate-800 font-black uppercase tracking-tight">Tidak Ada Tagihan</p>
-            <p className="text-slate-400 text-xs font-medium max-w-[200px] mt-1">Belum ada data tagihan yang masuk atau tidak ditemukan.</p>
+            <p className="text-slate-400 text-xs font-medium max-w-50 mt-1">Belum ada data tagihan yang masuk atau tidak ditemukan.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
+            <table className="w-full text-left border-collapse min-w-200">
               <thead className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">
                 <tr>
                   <th className="p-6 pl-10">Invoice ID</th>

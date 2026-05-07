@@ -1,10 +1,9 @@
 "use client";
 
-import React from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { FiArrowLeft, FiActivity, FiCreditCard } from "react-icons/fi";
-import { getTagihanById } from "@/lib/service/billing";
+import { getTagihanById } from "@/lib/service/mock";
 import BillingBreakdown from "@/components/billing/BillingBreakdown";
 import StatusBadge from "@/components/ui/StatusBadge";
 
@@ -47,7 +46,7 @@ export default function InvoiceDetailPage() {
         <div className="p-6 md:p-8 border-b border-slate-100 bg-slate-50/50">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-gradient-to-tr from-emerald-500 to-violet-500 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6">
+              <div className="w-14 h-14 bg-linear-to-tr from-emerald-500 to-violet-500 rounded-2xl flex items-center justify-center shadow-lg transform -rotate-6">
                 <FiActivity className="text-white w-7 h-7" />
               </div>
               <div>
@@ -92,7 +91,7 @@ export default function InvoiceDetailPage() {
               {tagihan.status === "pending" && (
                 <Link
                   href="/pasien"
-                  className="inline-flex items-center gap-3 bg-gradient-to-r from-emerald-500 to-violet-500 text-white px-10 py-4 rounded-2xl font-black shadow-lg shadow-violet-500/20 hover:scale-105 transition-transform text-sm uppercase tracking-wider"
+                  className="inline-flex items-center gap-3 bg-linear-to-r from-emerald-500 to-violet-500 text-white px-10 py-4 rounded-2xl font-black shadow-lg shadow-violet-500/20 hover:scale-105 transition-transform text-sm uppercase tracking-wider"
                 >
                   <FiCreditCard className="w-5 h-5" /> Bayar Sekarang
                 </Link>

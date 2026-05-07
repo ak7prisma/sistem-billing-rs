@@ -7,12 +7,12 @@ export default function LandingPage() {
       <div className="max-w-4xl w-full text-center space-y-12">
         <div className="space-y-6">
           <div className="flex justify-center mb-8">
-            <div className="w-20 h-20 bg-gradient-to-tr from-emerald-500 to-violet-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-violet-500/20 transform -rotate-12 hover:rotate-0 transition-transform duration-500">
+            <div className="w-20 h-20 bg-linear-to-tr from-emerald-500 to-violet-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-violet-500/20 transform -rotate-12 hover:rotate-0 transition-transform duration-500">
               <FiActivity className="text-white w-10 h-10" />
             </div>
           </div>
           <h1 className="text-5xl md:text-7xl font-black uppercase tracking-tighter text-slate-900 leading-none">
-            Satria <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-violet-500">Billing</span>
+            Satria <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-500 to-violet-500">Billing</span>
           </h1>
           <p className="text-slate-500 font-bold text-lg md:text-xl max-w-2xl mx-auto uppercase tracking-widest opacity-80">
             Sistem Informasi Rumah Sakit Terintegrasi

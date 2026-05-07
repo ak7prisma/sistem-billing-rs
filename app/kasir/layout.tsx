@@ -6,9 +6,9 @@ import DashboardLayout from "@/components/layout/DashboardLayout";
 
 export default function KasirLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   const navItems = [
     { label: "Overview", href: "/kasir", icon: FiGrid },
     { label: "Laporan", href: "/kasir/laporan", icon: FiFileText, disabled: true },

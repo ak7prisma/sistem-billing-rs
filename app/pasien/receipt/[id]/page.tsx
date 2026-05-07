@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FiArrowLeft, FiPrinter } from "react-icons/fi";
-import { getTagihanById } from "@/lib/service/billing";
+import { getTagihanById } from "@/lib/service/mock";
 
 export default function ReceiptPage() {
   const params = useParams();
@@ -43,14 +43,14 @@ export default function ReceiptPage() {
           <FiArrowLeft /> Kembali ke Riwayat
         </Link>
         <button 
-          onClick={() => window.print()} 
+          onClick={() => globalThis.print()} 
           className="bg-violet-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold shadow-md hover:bg-violet-700 transition flex items-center justify-center gap-2"
         >
           <FiPrinter /> Cetak Thermal (Print)
         </button>
       </div>
 
-      <div className="bg-white p-8 w-full max-w-[350px] shadow-2xl print-area border border-slate-200 text-slate-800">
+      <div className="bg-white p-8 w-full max-w-87.5 shadow-2xl print-area border border-slate-200 text-slate-800">
         <div className="text-center mb-6 border-b-2 border-dashed border-slate-300 pb-4">
           <h2 className="font-bold text-2xl uppercase leading-tight tracking-tight">RS Satria Medika</h2>
           <p className="text-[10px] mt-1 text-slate-500 font-sans">Jl. Kesehatan No. 99, Jakarta</p>
@@ -81,7 +81,7 @@ export default function ReceiptPage() {
           <tbody className="divide-y divide-dashed divide-slate-100">
             {tagihan.rincian.map((item) => (
               <tr key={item.id_rincian}>
-                <td className="py-2 text-slate-600 max-w-[150px] break-words">{item.nama_layanan}</td>
+                <td className="py-2 text-slate-600 max-w-37.5 wrap-break-word">{item.nama_layanan}</td>
                 <td className="text-right py-2 font-bold tracking-tighter text-[12px]">
                   {item.is_covered_bpjs ? (
                     <span className="text-emerald-600 text-[9px] uppercase">BPJS</span>

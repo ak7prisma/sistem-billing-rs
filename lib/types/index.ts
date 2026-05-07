@@ -58,6 +58,7 @@ export interface RincianTagihan {
 }
 
 export interface Tagihan {
+  id: ReactNode;
   id_tagihan: string;
   pasien_id: string;
   poli?: string;

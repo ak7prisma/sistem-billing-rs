@@ -51,7 +51,7 @@ export default function HistoryPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
         <div>
           <h1 className="text-3xl md:text-4xl font-black uppercase tracking-wide text-slate-800 mb-2">
-            Riwayat <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-violet-500">Transaksi</span>
+            Riwayat <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-500 to-violet-500">Transaksi</span>
           </h1>
           <p className="text-slate-500 font-medium text-sm md:text-base">Daftar seluruh riwayat tagihan dan pembayaran Anda.</p>
         </div>

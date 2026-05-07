@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FiPlus, FiTrash2, FiSave, FiUser, FiPackage, FiActivity, FiDatabase, FiCheckCircle, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiSave, FiActivity, FiDatabase, FiCheckCircle, FiChevronDown, FiChevronUp } from "react-icons/fi";
 import { seedPasienData, seedDemoPasien, seedTransaksiSampleData } from "@/lib/firebase/seed";
 import { MASTER_OBAT, MASTER_LAYANAN_MEDIS, MASTER_LAYANAN_LABOR, MASTER_POLI } from "@/lib/data/master";
 import { getAllData } from "@/lib/firebase/firestore";
@@ -141,7 +141,7 @@ export default function SeedPage() {
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 bg-slate-900 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-slate-200">
+            <div className="w-16 h-16 bg-slate-900 rounded-4xl flex items-center justify-center shadow-2xl shadow-slate-200">
               <FiDatabase className="text-white text-3xl" />
             </div>
             <div>
@@ -186,7 +186,7 @@ export default function SeedPage() {
 
             <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl border border-slate-800">
               <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Execution Logs</h2>
-              <div className="space-y-1 font-mono text-[10px] min-h-[300px] max-h-[400px] overflow-y-auto scrollbar-hide">
+              <div className="space-y-1 font-mono text-[10px] min-h-75 max-h-100 overflow-y-auto scrollbar-hide">
                 {status.map((s, i) => (
                   <div key={i} className="flex gap-3 text-emerald-500/80">
                     <span className="text-slate-700 shrink-0">[{i+1}]</span>
@@ -252,7 +252,7 @@ export default function SeedPage() {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-3">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center bg-slate-50 py-1 rounded">Medical Services</p>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-hide pr-1">
+                        <div className="space-y-2 max-h-75 overflow-y-auto scrollbar-hide pr-1">
                           {MASTER_LAYANAN_MEDIS.map(item => (
                             <button key={item.id_layanan_medis} onClick={() => addItem(item, "medis")} className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-violet-50 transition text-[10px] font-bold text-slate-600 line-clamp-1 border border-transparent hover:border-violet-100">
                               {item.nama_layanan}
@@ -262,7 +262,7 @@ export default function SeedPage() {
                       </div>
                       <div className="space-y-3">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center bg-slate-50 py-1 rounded">Lab Tests</p>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-hide pr-1">
+                        <div className="space-y-2 max-h-75 overflow-y-auto scrollbar-hide pr-1">
                           {MASTER_LAYANAN_LABOR.map(item => (
                             <button key={item.id_layanan_labor} onClick={() => addItem(item, "laboratorium")} className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-violet-50 transition text-[10px] font-bold text-slate-600 line-clamp-1 border border-transparent hover:border-violet-100">
                               {item.nama_layanan}
@@ -272,7 +272,7 @@ export default function SeedPage() {
                       </div>
                       <div className="space-y-3">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center bg-slate-50 py-1 rounded">Pharmacy / Drugs</p>
-                        <div className="space-y-2 max-h-[300px] overflow-y-auto scrollbar-hide pr-1">
+                        <div className="space-y-2 max-h-75 overflow-y-auto scrollbar-hide pr-1">
                           {MASTER_OBAT.map(item => (
                             <button key={item.id_obat} onClick={() => addItem(item, "obat")} className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-violet-50 transition text-[10px] font-bold text-slate-600 line-clamp-1 border border-transparent hover:border-violet-100">
                               {item.nama_obat}
@@ -288,7 +288,7 @@ export default function SeedPage() {
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selected Items ({cart.length})</p>
                       <button onClick={() => setCart([])} className="text-[9px] font-black text-rose-500 uppercase tracking-widest">Clear All</button>
                     </div>
-                    <div className="space-y-2 max-h-[200px] overflow-y-auto mb-6 pr-2">
+                    <div className="space-y-2 max-h-50 overflow-y-auto mb-6 pr-2">
                       {cart.map(item => (
                         <div key={item.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
                            <div className="min-w-0 flex-1">

@@ -49,7 +49,7 @@ export default function PasienHome() {
     <div className="max-w-4xl mx-auto mt-6 md:mt-12 p-4 md:p-6 space-y-6 md:space-y-8">
       <div>
         <h1 className="text-3xl md:text-4xl font-black uppercase tracking-wide text-slate-800 mb-2">
-          Tagihan <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-violet-500">Aktif</span>
+          Tagihan <span className="text-transparent bg-clip-text bg-linear-to-r from-emerald-500 to-violet-500">Aktif</span>
         </h1>
         <p className="text-slate-500 font-medium text-sm md:text-base">Halo {profile?.nama?.split(' ')[0] || "Pasien"}, selesaikan pembayaran Anda.</p>
       </div>
