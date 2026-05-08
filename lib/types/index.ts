@@ -17,6 +17,7 @@ export interface Obat {
   nama_obat: string;
   harga: number;
   is_covered_bpjs: boolean;
+  poli?: string;
 }
 
 export interface LayananMedis {
@@ -24,6 +25,7 @@ export interface LayananMedis {
   nama_layanan: string;
   harga: number;
   is_covered_bpjs: boolean;
+  poli?: string;
 }
 
 export interface LayananLabor {
@@ -31,6 +33,7 @@ export interface LayananLabor {
   nama_layanan: string;
   harga: number;
   is_covered_bpjs: boolean;
+  poli?: string;
 }
 
 // Internal Data

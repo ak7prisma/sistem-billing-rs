@@ -248,12 +248,17 @@ export default function SeedPage() {
                   </div>
 
                   <div className="space-y-6">
-                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2">Master Data Selection</h3>
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2 flex justify-between items-center">
+                      <span>Master Data Selection</span>
+                      <span className="text-[9px] text-indigo-500 font-bold uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded">Filtered by {poli}</span>
+                    </h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div className="space-y-3">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center bg-slate-50 py-1 rounded">Medical Services</p>
                         <div className="space-y-2 max-h-75 overflow-y-auto scrollbar-hide pr-1">
-                          {MASTER_LAYANAN_MEDIS.map(item => (
+                          {MASTER_LAYANAN_MEDIS
+                            .filter(item => !item.poli || item.poli === poli || item.poli === "Umum")
+                            .map(item => (
                             <button key={item.id_layanan_medis} onClick={() => addItem(item, "medis")} className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-violet-50 transition text-[10px] font-bold text-slate-600 line-clamp-1 border border-transparent hover:border-violet-100">
                               {item.nama_layanan}
                             </button>
@@ -263,7 +268,9 @@ export default function SeedPage() {
                       <div className="space-y-3">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center bg-slate-50 py-1 rounded">Lab Tests</p>
                         <div className="space-y-2 max-h-75 overflow-y-auto scrollbar-hide pr-1">
-                          {MASTER_LAYANAN_LABOR.map(item => (
+                          {MASTER_LAYANAN_LABOR
+                            .filter(item => !item.poli || item.poli === poli || item.poli === "Umum")
+                            .map(item => (
                             <button key={item.id_layanan_labor} onClick={() => addItem(item, "laboratorium")} className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-violet-50 transition text-[10px] font-bold text-slate-600 line-clamp-1 border border-transparent hover:border-violet-100">
                               {item.nama_layanan}
                             </button>
@@ -273,7 +280,9 @@ export default function SeedPage() {
                       <div className="space-y-3">
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center bg-slate-50 py-1 rounded">Pharmacy / Drugs</p>
                         <div className="space-y-2 max-h-75 overflow-y-auto scrollbar-hide pr-1">
-                          {MASTER_OBAT.map(item => (
+                          {MASTER_OBAT
+                            .filter(item => !item.poli || item.poli === poli || item.poli === "Umum")
+                            .map(item => (
                             <button key={item.id_obat} onClick={() => addItem(item, "obat")} className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-violet-50 transition text-[10px] font-bold text-slate-600 line-clamp-1 border border-transparent hover:border-violet-100">
                               {item.nama_obat}
                             </button>
