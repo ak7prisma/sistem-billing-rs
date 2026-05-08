@@ -30,11 +30,13 @@ import PageHeader from "@/components/ui/PageHeader";
 import { useFinancialData } from "@/lib/hooks/useFinancialData";
 import { formatRupiah } from "@/lib/utils/currency";
 import { statItems } from "@/lib/data/stats";
+import { generateFinancialReport } from "@/lib/utils/pdf";
 
 const COLORS = ["#8b5cf6", "#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
 
 export default function ManagerDashboard() {
   const [mounted, setMounted] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [timeRange, setTimeRange] = useState("7 Hari Terakhir");
   const [isRangeDropdownOpen, setIsRangeDropdownOpen] = useState(false);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -44,6 +46,18 @@ export default function ManagerDashboard() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      generateFinancialReport(stats, charts, timeRange, selectedPoli);
+    } catch (error) {
+      console.error(error);
+      alert("Gagal mengexport laporan.");
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   if (!mounted) return null;
 
@@ -282,8 +296,12 @@ export default function ManagerDashboard() {
         <div className="relative z-10 space-y-5 md:max-w-md">
           <h3 className="text-3xl font-black leading-none uppercase tracking-tighter">Export <br/>Financial Data</h3>
           <p className="text-slate-400 text-xs font-bold leading-relaxed uppercase tracking-widest opacity-80">Download rekapitulasi data keuangan dalam format PDF atau Excel secara instan untuk kebutuhan audit.</p>
-          <button className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 transition shadow-xl hover:scale-105 active:scale-95">
-            Download Report Now
+          <button 
+            onClick={handleExport}
+            disabled={isExporting}
+            className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-100 transition shadow-xl hover:scale-105 active:scale-95 disabled:opacity-50 flex items-center gap-2"
+          >
+            {isExporting ? <><FiLoader className="animate-spin" /> Exporting...</> : "Download Report Now"}
           </button>
         </div>
         <FiFileText className="absolute -right-10 -bottom-10 text-white/5 w-80 h-80 transform rotate-12" />
