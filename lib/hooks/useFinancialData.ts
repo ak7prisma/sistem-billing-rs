@@ -55,7 +55,11 @@ export const useFinancialData = (timeRange: string = "7 Hari Terakhir", selected
     
     if (!matchesPoli) return false;
 
-    const date = p.tanggal_pembayaran?.seconds ? new Date(p.tanggal_pembayaran.seconds * 1000) : new Date();
+    const date = p.tanggal_pembayaran?.seconds 
+      ? new Date(p.tanggal_pembayaran.seconds * 1000) 
+      : p.tanggal_pembayaran 
+        ? new Date(p.tanggal_pembayaran) 
+        : new Date();
     const now = new Date();
     if (timeRange === "7 Hari Terakhir") {
       const sevenDaysAgo = new Date(now.setDate(now.getDate() - 7));
@@ -79,7 +83,11 @@ export const useFinancialData = (timeRange: string = "7 Hari Terakhir", selected
   const revenueByDay = days.map((day, idx) => {
     const total = filteredPembayarans
       .filter(p => {
-        const d = p.tanggal_pembayaran?.seconds ? new Date(p.tanggal_pembayaran.seconds * 1000) : new Date();
+        const d = p.tanggal_pembayaran?.seconds 
+          ? new Date(p.tanggal_pembayaran.seconds * 1000) 
+          : p.tanggal_pembayaran 
+            ? new Date(p.tanggal_pembayaran) 
+            : new Date();
         return d.getDay() === idx;
       })
       .reduce((sum, p) => sum + (p.iur_biaya || 0), 0);
