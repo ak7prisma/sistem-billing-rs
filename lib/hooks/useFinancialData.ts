@@ -88,6 +88,25 @@ export const useFinancialData = (timeRange: string = "7 Hari Terakhir", selected
 
   const sortedRevenue = [...revenueByDay.slice(1), revenueByDay[0]];
 
+  // Insurance Share (BPJS vs Non-BPJS)
+  const insuranceShare = [
+    { name: "BPJS", value: totalClaims },
+    { name: "Mandiri", value: totalRevenue }
+  ];
+
+  // Transaction Status Share
+  const statusCounts: Record<string, number> = { pending: 0, lunas: 0, gagal: 0 };
+  filteredTagihans.forEach(t => {
+    const s = t.status || "pending";
+    statusCounts[s] = (statusCounts[s] || 0) + 1;
+  });
+  const statusShare = [
+    { name: "Pending", count: statusCounts.pending, color: "#f59e0b" },
+    { name: "Berhasil", count: statusCounts.lunas, color: "#10b981" },
+    { name: "Gagal", count: statusCounts.gagal, color: "#ef4444" }
+  ];
+
+  // Department Distribution Data
   const poliCounts: Record<string, number> = {};
   filteredTagihans.forEach(t => {
     const p = t.poli || "Umum";
@@ -107,7 +126,9 @@ export const useFinancialData = (timeRange: string = "7 Hari Terakhir", selected
     },
     charts: {
       revenueTrend: sortedRevenue,
-      departmentShare: dataPoli
+      departmentShare: dataPoli,
+      insuranceShare,
+      statusShare
     },
     allDepartments,
     loading,
