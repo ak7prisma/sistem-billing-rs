@@ -30,7 +30,7 @@ export default function DashboardLayout({
   brandName,
   brandSubName = "Billing",
   gradient = "from-blue-600 to-indigo-600"
-}: DashboardLayoutProps) {
+}: Readonly<DashboardLayoutProps>) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const pathname = usePathname();
 
@@ -42,7 +42,7 @@ export default function DashboardLayout({
         {/* Mobile Top Header */}
         <header className="md:hidden bg-slate-900 p-4 flex justify-between items-center z-30 shadow-md">
           <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 bg-gradient-to-tr ${gradient} rounded flex items-center justify-center`}>
+            <div className={`w-8 h-8 bg-linear-to-tr ${gradient} rounded flex items-center justify-center`}>
               <FiActivity className="text-white w-4 h-4" />
             </div>
             <span className="text-white font-bold tracking-wider uppercase text-sm">{brandName} {brandSubName}</span>
@@ -60,7 +60,7 @@ export default function DashboardLayout({
         >
           <div>
             <div className="p-8 hidden md:flex items-center gap-3">
-              <div className={`w-8 h-8 bg-gradient-to-tr ${gradient} rounded flex items-center justify-center shadow-lg`}>
+              <div className={`w-8 h-8 bg-linear-to-tr ${gradient} rounded flex items-center justify-center shadow-lg`}>
                 <FiActivity className="text-white w-4 h-4" />
               </div>
               <div className="leading-none">
@@ -83,7 +83,7 @@ export default function DashboardLayout({
                     onClick={() => setIsSidebarOpen(false)}
                     className={`flex items-center gap-4 px-4 py-3.5 rounded-2xl font-bold transition-all duration-200 ${
                       isActive
-                        ? `bg-gradient-to-r ${gradient} text-white shadow-lg`
+                        ? `bg-linear-to-r ${gradient} text-white shadow-lg`
                         : "text-slate-400 hover:text-white hover:bg-slate-800"
                     }`}
                   >
@@ -103,7 +103,7 @@ export default function DashboardLayout({
         </aside>
 
         {isSidebarOpen && (
-          <div onClick={toggleSidebar} className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm transition-all"></div>
+          <button onClick={toggleSidebar} className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm transition-all"></button>
         )}
 
         <main className="flex-1 overflow-y-auto p-4 md:p-12 relative">
