@@ -61,6 +61,40 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
     }
   };
 
+  const handleXenditPayment = async () => {
+    if (!tagihan || !pasien) return;
+    
+    setLoading(true);
+    try {
+      const totalTagihan = rincian.reduce((sum, r) => sum + r.subtotal, 0);
+      const totalCover = rincian.reduce((sum, r) => sum + (r.is_covered_bpjs ? r.subtotal : 0), 0);
+      const iurBiaya = totalTagihan - totalCover;
+
+      const response = await fetch("/api/payment/xendit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tagihanId: tagihan.id_tagihan,
+          amount: iurBiaya,
+          customerName: pasien.nama,
+          customerEmail: pasien.email || `${pasien.nama.replace(/\s/g, "").toLowerCase()}@hospital.com`,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.invoice_url) {
+        window.location.href = data.invoice_url;
+      } else {
+        alert("Gagal membuat invoice pembayaran: " + data.error);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Terjadi kesalahan sistem saat memproses pembayaran.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -212,15 +246,12 @@ const InvoiceModal: React.FC<InvoiceModalProps> = ({ isOpen, onClose, tagihan, o
             ) : (
               role === "pasien" && (
                 <button 
-                  onClick={() => {
-                    if (confirm("Lanjutkan pembayaran via QRIS? (Simulasi)")) {
-                      handlePay("qris");
-                    }
-                  }}
+                  onClick={handleXenditPayment}
                   disabled={loading}
-                  className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-violet-500 text-white px-10 py-3 rounded-xl font-black shadow-lg hover:opacity-90 transition uppercase text-xs tracking-widest"
+                  className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-violet-500 text-white px-10 py-3 rounded-xl font-black shadow-lg hover:opacity-90 transition uppercase text-xs tracking-widest disabled:opacity-50 active:scale-95"
                 >
-                  {loading ? <FiLoader className="animate-spin" /> : <FiCreditCard size={18} />} Bayar via QRIS
+                  {loading ? <FiLoader className="animate-spin" /> : <FiCreditCard size={18} />} 
+                  {loading ? "Memproses..." : "Bayar Sekarang"}
                 </button>
               )
             )}
