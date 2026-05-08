@@ -34,7 +34,7 @@ const ManagerFilters: React.FC<ManagerFiltersProps> = ({
             setIsRangeDropdownOpen(!isRangeDropdownOpen);
             setIsFilterOpen(false);
           }}
-          className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-[10px] font-black text-slate-600 shadow-sm hover:bg-slate-50 transition uppercase tracking-widest"
+          className="flex items-center gap-2 bg-white border border-slate-200 px-4 py-2.5 rounded-xl text-[10px] font-black text-slate-600 shadow-sm hover:bg-slate-50 transition uppercase tracking-widest whitespace-nowrap"
         >
           <FiCalendar /> {timeRange}
         </button>
@@ -68,15 +68,15 @@ const ManagerFilters: React.FC<ManagerFiltersProps> = ({
             setIsFilterOpen(!isFilterOpen);
             setIsRangeDropdownOpen(false);
           }}
-          className={`p-2.5 rounded-xl shadow-lg transition active:scale-95 flex items-center gap-2 ${
+          className={`p-2.5 h-[38px] rounded-xl shadow-lg transition active:scale-95 flex items-center gap-2 max-w-[180px] ${
             isFilterOpen || selectedPoli !== "Semua Poli" 
             ? "bg-violet-600 text-white shadow-violet-500/20" 
             : "bg-slate-900 text-white shadow-slate-900/10 hover:bg-slate-800"
           }`}
         >
-          <FiFilter size={18} />
+          <FiFilter size={18} className="shrink-0" />
           {selectedPoli !== "Semua Poli" && (
-            <span className="text-[9px] font-black uppercase tracking-tighter pr-1">{selectedPoli}</span>
+            <span className="text-[9px] font-black uppercase truncate">{selectedPoli}</span>
           )}
         </button>
 

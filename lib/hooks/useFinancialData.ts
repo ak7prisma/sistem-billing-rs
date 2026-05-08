@@ -131,6 +131,8 @@ export const useFinancialData = (timeRange: string = "7 Hari Terakhir", selected
       statusShare
     },
     allDepartments,
+    filteredTagihans,
+    filteredPembayarans,
     loading,
     error,
     refresh: fetchData
