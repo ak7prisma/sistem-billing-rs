@@ -26,6 +26,7 @@ import {
 import PageHeader from "@/components/ui/PageHeader";
 import { useFinancialData } from "@/lib/hooks/useFinancialData";
 import { formatRupiah } from "@/lib/utils/currency";
+import { statItems } from "@/lib/data/stats";
 
 const COLORS = ["#8b5cf6", "#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
 
@@ -48,13 +49,6 @@ export default function ManagerDashboard() {
     );
   }
 
-  const statItems = [
-    { label: "Pendapatan Pasien", value: formatRupiah(stats.totalRevenue), delta: "Real-time", icon: FiDollarSign, color: "bg-blue-500" },
-    { label: "Klaim BPJS", value: formatRupiah(stats.totalClaims), delta: "Pending", icon: FiActivity, color: "bg-emerald-500" },
-    { label: "Total Transaksi", value: stats.totalTransactions.toString(), delta: "Selesai", icon: FiTrendingUp, color: "bg-violet-500" },
-    { label: "Total Kunjungan", value: stats.totalKunjungan.toString(), delta: "Terdaftar", icon: FiUsers, color: "bg-amber-500" },
-  ];
-
   return (
     <div className="space-y-10 pb-10">
       <PageHeader 
@@ -71,8 +65,8 @@ export default function ManagerDashboard() {
       </PageHeader>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statItems.map((stat) => (
-          <div key={stat.label} className="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
+        {statItems(stats).map((stat) => (
+          <div key={stat.label} className="bg-white p-6 rounded-4xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 group">
             <div className="flex justify-between items-start mb-4">
               <div className={`${stat.color} p-3 rounded-2xl text-white shadow-lg group-hover:scale-110 transition-transform`}>
                 <stat.icon size={20} />
@@ -122,7 +116,7 @@ export default function ManagerDashboard() {
             <h3 className="font-black text-slate-800 uppercase tracking-tight text-xs">Distribusi Billing Per Poli</h3>
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Department Share</span>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-75 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={charts.departmentShare}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -151,7 +145,7 @@ export default function ManagerDashboard() {
             Download Report Now
           </button>
         </div>
-        <FiFileText className="absolute right-[-40px] bottom-[-40px] text-white/5 w-80 h-80 transform rotate-12" />
+        <FiFileText className="absolute -right-10 -bottom-10 text-white/5 w-80 h-80 transform rotate-12" />
       </div>
     </div>
   );
