@@ -1,4 +1,4 @@
-export type UserRole = "kasir" | "manajer" | "pasien";
+export type UserRole = "kasir" | "manajer" | "pasien" | "developer";
 export type TagihanStatus = "pending" | "lunas" | "gagal";
 
 export interface User {

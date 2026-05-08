@@ -19,26 +19,25 @@ export const syncUserWithFirestore = async (user: FirebaseUser) => {
     await setDoc(userRef, {
       uid: user.uid,
       email: user.email,
-      nama: user.displayName,
+      nama: user.displayName || user.email?.split("@")[0] || "User",
       role: "pasien" as UserRole,
-      photoURL: user.photoURL,
       createdAt: serverTimestamp(),
       lastLogin: serverTimestamp(),
     });
+    return "pasien" as UserRole;
   } else {
+    const userData = userSnap.data();
     await setDoc(userRef, {
       lastLogin: serverTimestamp(),
-      photoURL: user.photoURL,
     }, { merge: true });
+    return userData.role as UserRole;
   }
-
-  return userSnap.exists() ? userSnap.data().role : "pasien";
 };
 
 export const loginWithEmail = async (email: string, pass: string) => {
   try {
     const result = await signInWithEmailAndPassword(auth, email, pass);
-    const role = await getUserRole(result.user.uid);
+    const role = await syncUserWithFirestore(result.user);
     return { user: result.user, role };
   } catch (error) {
     console.error("Error loginWithEmail:", error);

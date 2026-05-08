@@ -17,7 +17,8 @@ export const useLogin = () => {
       const routes = {
         kasir: "/kasir",
         manajer: "/manager",
-        pasien: "/pasien"
+        pasien: "/pasien",
+        developer: "/seed"
       };
 
       router.push(routes[role as keyof typeof routes] || "/pasien");
