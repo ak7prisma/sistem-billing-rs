@@ -74,11 +74,13 @@ export interface Tagihan {
 export interface Pembayaran {
   id_pembayaran: string;
   tagihan_id: string;
-  metode_pembayaran: "tunai" | "qris" | "transfer";
+  metode_pembayaran: "tunai" | "qris" | "transfer" | "xendit";
   tanggal_pembayaran: any;
+  jumlah_pembayaran: number;
   cover_bpjs: number;
   iur_biaya: number;
   status: "berhasil" | "gagal";
+  xendit_invoice_id?: string;
 }
 
 export interface RincianPembayaran {
