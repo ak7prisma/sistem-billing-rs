@@ -7,10 +7,9 @@ import { Tagihan } from "@/lib/types";
 interface ActiveInvoiceCardProps {
   tagihan: Tagihan;
   onPay: (id: string) => void;
-  onViewDetail: (id: string) => void;
 }
 
-const ActiveInvoiceCard: React.FC<ActiveInvoiceCardProps> = ({ tagihan, onPay, onViewDetail }) => {
+const ActiveInvoiceCard: React.FC<ActiveInvoiceCardProps> = ({ tagihan, onPay }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -43,12 +42,6 @@ const ActiveInvoiceCard: React.FC<ActiveInvoiceCardProps> = ({ tagihan, onPay, o
           {formatCurrency(tagihan.total_biaya)}
         </div>
         <div className="flex gap-3">
-          <button
-            onClick={() => onViewDetail(tagihan.id_tagihan)}
-            className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-6 py-3 rounded-xl text-sm font-bold transition"
-          >
-            <FiSearch className="w-4 h-4" /> Detail
-          </button>
           <button
             onClick={() => onPay(tagihan.id_tagihan)}
             className="flex-1 md:flex-none inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-violet-500 hover:opacity-90 text-white px-8 py-3 rounded-xl text-sm font-black transition shadow-lg shadow-violet-500/20 uppercase tracking-wider"

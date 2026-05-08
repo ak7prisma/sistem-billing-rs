@@ -58,7 +58,6 @@ export default function PasienHome() {
         <ActiveInvoiceCard 
           tagihan={activeBill} 
           onPay={() => handleAction(activeBill.id_tagihan, true)} 
-          onViewDetail={() => handleAction(activeBill.id_tagihan, false)}
         />
       ) : (
         <div className="bg-slate-50 p-12 text-center rounded-2xl border border-dashed border-slate-200">

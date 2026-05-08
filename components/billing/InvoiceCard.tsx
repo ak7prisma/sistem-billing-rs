@@ -59,9 +59,6 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ tagihan, showPayButton, onPay
         </div>
       </div>
       
-      <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 group-hover:right-2 transition-all text-slate-300 hidden md:block">
-        <FiChevronRight className="w-6 h-6" />
-      </div>
     </div>
   );
 };
