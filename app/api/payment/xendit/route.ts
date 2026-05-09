@@ -22,7 +22,7 @@ export async function POST(req: Request) {
         external_id: tagihanId,
         amount: amount,
         description: `Pembayaran Tagihan Rumah Sakit - ${tagihanId}`,
-        invoice_duration: 86400, // 24 hours
+        invoice_duration: 86400,
         customer: {
           given_names: customerName,
           email: customerEmail,

@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { FiGrid, FiFileText, FiPieChart, FiSettings } from "react-icons/fi";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import { navItemsKasir } from "@/lib/data/navItems";
 

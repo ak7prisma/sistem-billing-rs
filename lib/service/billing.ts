@@ -47,4 +47,3 @@ export const konsolidasiTagihan = async (pasienId: string, kunjunganId: string, 
     throw error;
   }
 };
-

@@ -4,8 +4,6 @@ import React, { useState, useEffect } from "react";
 import { FiLoader } from "react-icons/fi";
 import { useFinancialData } from "@/lib/hooks/useFinancialData";
 import { generateFinancialReport } from "@/lib/utils/pdf";
-
-// Manager Components
 import ManagerFilters from "@/components/manager/ManagerFilters";
 import StatGrid from "@/components/manager/StatGrid";
 import { AnalyticsCharts } from "@/components/manager/AnalyticsCharts";
@@ -52,7 +50,7 @@ export default function ManagerDashboard() {
 
   return (
     <div className="space-y-10 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* 1. Header & Filters */}
+
       <ManagerFilters 
         timeRange={timeRange}
         setTimeRange={setTimeRange}
@@ -61,13 +59,10 @@ export default function ManagerDashboard() {
         departments={departments}
       />
 
-      {/* 2. Key Statistics Grid */}
       <StatGrid stats={stats} />
 
-      {/* 3. Analytics & Data Visualizations */}
       <AnalyticsCharts charts={charts} />
 
-      {/* 4. Action Card: Export Report */}
       <ExportCard 
         onExport={handleExport} 
         isExporting={isExporting} 

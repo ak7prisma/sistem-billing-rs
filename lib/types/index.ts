@@ -11,7 +11,6 @@ export interface User {
   lastLogin?: any;
 }
 
-// External Master Data
 export interface Obat {
   id_obat: string;
   nama_obat: string;
@@ -90,5 +89,3 @@ export interface RincianPembayaran {
   jumlah: number;
   subtotal: number;
 }
-
-

@@ -38,7 +38,7 @@ export default function InvoiceDetailPage() {
 
       const data = await response.json();
       if (data.invoice_url) {
-        window.location.href = data.invoice_url;
+        globalThis.location.href = data.invoice_url;
       } else {
         alert("Gagal membuat invoice pembayaran: " + data.error);
       }

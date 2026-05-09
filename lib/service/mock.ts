@@ -29,4 +29,3 @@ export const MOCK_TAGIHAN: Tagihan[] = [
 export const getTagihanById = (id: string) => {
   return MOCK_TAGIHAN.find(t => t.id_tagihan === id);
 };
-
