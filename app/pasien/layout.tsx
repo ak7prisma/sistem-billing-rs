@@ -6,6 +6,7 @@ import { FiHome, FiClock, FiInfo, FiActivity } from "react-icons/fi";
 import RoleGuard from "@/components/layout/RoleGuard";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { logout } from "@/lib/firebase/auth";
+import { navItems } from "@/lib/data/navItems";
 
 export default function PasienLayout({
   children,
@@ -21,12 +22,6 @@ export default function PasienLayout({
       globalThis.location.href = "/";
     }
   };
-
-  const navItems = [
-    { label: "Home", href: "/pasien", icon: FiHome },
-    { label: "History", href: "/pasien/history", icon: FiClock },
-    { label: "About", href: "/pasien/about", icon: FiInfo },
-  ];
 
   return (
     <RoleGuard allowedRoles={["pasien"]}>
