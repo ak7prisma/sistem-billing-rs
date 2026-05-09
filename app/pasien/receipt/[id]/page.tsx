@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { FiArrowLeft, FiPrinter } from "react-icons/fi";
 import { getTagihanById } from "@/lib/service/mock";
+import { formatRupiah } from "@/lib/utils/currency";
 
 export default function ReceiptPage() {
   const params = useParams();
@@ -26,12 +27,6 @@ export default function ReceiptPage() {
       </div>
     );
   }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <div className="min-h-screen p-4 md:p-10 flex flex-col items-center gap-6 font-mono">
@@ -86,7 +81,7 @@ export default function ReceiptPage() {
                   {item.is_covered_bpjs ? (
                     <span className="text-emerald-600 text-[9px] uppercase">BPJS</span>
                   ) : (
-                    formatCurrency(item.subtotal)
+                    formatRupiah(item.subtotal)
                   )}
                 </td>
               </tr>
@@ -96,7 +91,7 @@ export default function ReceiptPage() {
 
         <div className="border-t-2 border-dashed border-slate-300 pt-4 mb-8 flex justify-between items-center">
           <span className="font-bold text-sm uppercase">TOTAL BAYAR</span>
-          <span className="text-xl font-black text-slate-900 tracking-tighter">{formatCurrency(tagihan.total_biaya)}</span>
+          <span className="text-xl font-black text-slate-900 tracking-tighter">{formatRupiah(tagihan.total_biaya)}</span>
         </div>
 
         <div className="text-center text-[10px] border-t-2 border-dashed border-slate-300 pt-6">
@@ -107,21 +102,6 @@ export default function ReceiptPage() {
           </div>
         </div>
       </div>
-
-      <style jsx global>{`
-        @media print {
-          body { background-color: white !important; }
-          .no-print { display: none !important; }
-          .print-area { 
-            box-shadow: none !important; 
-            margin: 0 !important; 
-            padding: 0 !important; 
-            border: none !important;
-            width: 100% !important;
-            max-width: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

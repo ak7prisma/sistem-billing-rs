@@ -2,6 +2,7 @@ import React from "react";
 import { FiFileText, FiChevronRight, FiSearch } from "react-icons/fi";
 import { Tagihan } from "@/lib/types";
 import StatusBadge from "../ui/StatusBadge";
+import { formatRupiah } from "@/lib/utils/currency";
 
 interface InvoiceCardProps {
   tagihan: Tagihan;
@@ -11,13 +12,6 @@ interface InvoiceCardProps {
 }
 
 const InvoiceCard: React.FC<InvoiceCardProps> = ({ tagihan, showPayButton, onPay, onViewDetail }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <div className="group relative bg-white p-6 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all border-l-4 border-l-violet-500 overflow-hidden">
@@ -38,7 +32,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ tagihan, showPayButton, onPay
 
         <div className="flex flex-col md:items-end w-full md:w-auto">
           <div className="text-xl font-black text-slate-800 mb-2">
-            {formatCurrency(tagihan.total_biaya)}
+            {formatRupiah(tagihan.total_biaya)}
           </div>
           <div className="flex gap-3 w-full md:w-auto">
             <button

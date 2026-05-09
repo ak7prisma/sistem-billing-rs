@@ -5,7 +5,6 @@ import { FiActivity, FiUser, FiClock } from "react-icons/fi";
 import { Tagihan, Pasien, RincianTagihan } from "@/lib/types";
 import BillingBreakdown from "./BillingBreakdown";
 import StatusBadge from "../ui/StatusBadge";
-import { formatRupiah } from "@/lib/utils/currency";
 
 interface InvoiceContentProps {
   tagihan: Tagihan;

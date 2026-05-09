@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { FiX, FiPrinter, FiArrowLeft } from "react-icons/fi";
 import { Tagihan, RincianTagihan, Pasien } from "@/lib/types";
 import { getRinciTagihanByTagihan, getData } from "@/lib/firebase/firestore";
+import { formatRupiah } from "@/lib/utils/currency";
 
 interface ReceiptModalProps {
   isOpen: boolean;
@@ -45,12 +46,6 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, tagihan })
   };
 
   if (!isOpen || !tagihan) return null;
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <div 
@@ -127,7 +122,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, tagihan })
                     {item.is_covered_bpjs ? (
                       <span className="text-emerald-600 text-[9px] uppercase">BPJS</span>
                     ) : (
-                      formatCurrency(item.subtotal)
+                      formatRupiah(item.subtotal)
                     )}
                   </td>
                 </tr>
@@ -137,7 +132,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, tagihan })
 
           <div className="border-t-2 border-dashed border-slate-300 pt-4 mb-8 flex justify-between items-center">
             <span className="font-bold text-xs uppercase">TOTAL</span>
-            <span className="text-lg font-black text-slate-900 tracking-tighter">{formatCurrency(tagihan.total_biaya)}</span>
+            <span className="text-lg font-black text-slate-900 tracking-tighter">{formatRupiah(tagihan.total_biaya)}</span>
           </div>
 
           <div className="text-center text-[10px] border-t-2 border-dashed border-slate-300 pt-6">

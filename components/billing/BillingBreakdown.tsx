@@ -1,5 +1,6 @@
 import React from "react";
 import { RincianTagihan } from "@/lib/types";
+import { formatRupiah } from "@/lib/utils/currency";
 
 interface BillingBreakdownProps {
   rincian: RincianTagihan[];
@@ -7,13 +8,6 @@ interface BillingBreakdownProps {
 }
 
 const BillingBreakdown: React.FC<BillingBreakdownProps> = ({ rincian = [], tipePenjamin }) => {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
 
   return (
     <div className="overflow-x-auto">
@@ -32,8 +26,6 @@ const BillingBreakdown: React.FC<BillingBreakdownProps> = ({ rincian = [], tipeP
         </thead>
         <tbody className="divide-y divide-slate-50">
           {rincian.map((item) => {
-            // Logika: Jika is_covered_bpjs true, maka BPJS menanggung FULL harga subtotal
-            // Jika false, pasien membayar FULL subtotal
             const isCovered = item.is_covered_bpjs === true;
             const coverBpjs = isCovered ? item.subtotal : 0;
             const iurPasien = isCovered ? 0 : item.subtotal;
@@ -54,16 +46,16 @@ const BillingBreakdown: React.FC<BillingBreakdownProps> = ({ rincian = [], tipeP
                   </div>
                 </td>
                 <td className="p-5 text-right text-slate-500 font-medium font-mono">
-                  {formatCurrency(item.subtotal)}
+                  {formatRupiah(item.subtotal)}
                 </td>
                 {tipePenjamin === "bpjs" && (
                   <>
                     <td className="p-5 text-right text-emerald-600 font-bold font-mono">
-                      {isCovered ? formatCurrency(coverBpjs) : "-"}
+                      {isCovered ? formatRupiah(coverBpjs) : "-"}
                     </td>
                     <td className="p-5 text-right font-black font-mono">
                       <span className={iurPasien > 0 ? "text-violet-600" : "text-slate-300"}>
-                        {formatCurrency(iurPasien)}
+                        {formatRupiah(iurPasien)}
                       </span>
                     </td>
                   </>

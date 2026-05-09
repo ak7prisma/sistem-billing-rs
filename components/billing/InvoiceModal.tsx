@@ -6,7 +6,6 @@ import { Tagihan, RincianTagihan, Pasien } from "@/lib/types";
 import { prosesPembayaran } from "@/lib/service/payment";
 import { getRinciTagihanByTagihan, getData } from "@/lib/firebase/firestore";
 
-// New Shared Components
 import InvoiceContent from "./InvoiceContent";
 import InvoiceSummary from "./InvoiceSummary";
 
