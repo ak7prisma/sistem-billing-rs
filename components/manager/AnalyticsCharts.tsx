@@ -14,17 +14,26 @@ import {
   Cell,
   PieChart,
   Pie,
-  Legend
+  Legend,
+  Rectangle
 } from "recharts";
 import { formatRupiah } from "@/lib/utils/currency";
 import { COLOR_PALETTE } from "@/lib/data/colorStyle";
 
+interface ChartData {
+  name: string;
+  total?: number;
+  count?: number;
+  value?: number;
+  color?: string;
+}
+
 interface AnalyticsChartsProps {
   charts: {
-    revenueTrend: any[];
-    departmentShare: any[];
-    insuranceShare: any[];
-    statusShare: any[];
+    revenueTrend: ChartData[];
+    departmentShare: ChartData[];
+    insuranceShare: ChartData[];
+    statusShare: ChartData[];
   };
 }
 
@@ -52,7 +61,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ charts }) => {
                 <YAxis axisLine={false} tickLine={false} tick={{fontSize: 10, fontWeight: 700, fill: '#94a3b8'}} tickFormatter={(value) => `${value/1000000}M`} />
                 <Tooltip 
                   contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px'}}
-                  formatter={(value: any) => [`Rp ${value.toLocaleString()}`, 'Total']}
+                  formatter={(value) => [formatRupiah(value as number), 'Total']}
                 />
                 <Area type="monotone" dataKey="total" stroke="#3b82f6" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
               </AreaChart>
@@ -60,7 +69,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ charts }) => {
           </div>
         </div>
 
-        {/* Department Share Bar Chart */}
+        {/* Department Share */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b border-slate-50 pb-4">
             <h3 className="font-black text-slate-800 uppercase tracking-tight text-xs">Distribusi Billing Per Poli</h3>
@@ -76,11 +85,14 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ charts }) => {
                    cursor={{fill: '#f8fafc'}}
                    contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px'}}
                 />
-                <Bar dataKey="count" radius={[10, 10, 0, 0]} barSize={40}>
-                  {charts.departmentShare.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLOR_PALETTE[index % COLOR_PALETTE.length]} />
-                  ))}
-                </Bar>
+                <Bar 
+                  dataKey="count" 
+                  barSize={40}
+                  shape={(props: any) => {
+                    const { index } = props;
+                    return <Rectangle {...props} radius={[10, 10, 0, 0]} fill={COLOR_PALETTE[index % COLOR_PALETTE.length]} />;
+                  }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -88,7 +100,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ charts }) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Insurance Type Share Pie Chart */}
+        {/* Insurance Type Share */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b border-slate-50 pb-4">
             <h3 className="font-black text-slate-800 uppercase tracking-tight text-xs">Metode Penjamin</h3>
@@ -111,7 +123,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ charts }) => {
                 </Pie>
                 <Tooltip 
                   contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px'}}
-                  formatter={(value: any) => formatRupiah(value)}
+                  formatter={(value) => formatRupiah(value as number)}
                 />
                 <Legend wrapperStyle={{fontSize: '10px', fontWeight: 800, textTransform: 'uppercase'}} />
               </PieChart>
@@ -119,7 +131,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ charts }) => {
           </div>
         </div>
 
-        {/* Transaction Status Bar Chart */}
+        {/* Transaction Status */}
         <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b border-slate-50 pb-4">
             <h3 className="font-black text-slate-800 uppercase tracking-tight text-xs">Status Transaksi</h3>
@@ -135,11 +147,14 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ charts }) => {
                   cursor={{fill: '#f8fafc'}}
                   contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', fontWeight: 800, fontSize: '10px'}}
                 />
-                <Bar dataKey="count" radius={[0, 10, 10, 0]} barSize={30}>
-                  {charts.statusShare.map((entry: any, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Bar>
+                <Bar 
+                  dataKey="count" 
+                  barSize={30}
+                  shape={(props: any) => {
+                    const { payload } = props;
+                    return <Rectangle {...props} radius={[0, 10, 10, 0]} fill={payload.color} />;
+                  }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
