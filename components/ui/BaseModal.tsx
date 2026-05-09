@@ -33,12 +33,12 @@ const BaseModal: React.FC<BaseModalProps> = ({
         className={`relative bg-white w-full ${maxWidth} max-h-[90vh] overflow-hidden rounded-[3rem] shadow-2xl flex flex-col animate-in zoom-in-95 duration-300 ${className}`}
       >
         {showCloseButton && (
-          <div className="absolute top-8 right-8 z-10 no-print">
+          <div className="absolute top-4 right-4 md:top-6 md:right-6 z-50 no-print">
             <button 
               onClick={onClose} 
-              className="p-2 bg-white/50 backdrop-blur-md hover:bg-white rounded-full transition-all text-slate-400 hover:text-slate-900 shadow-sm border border-slate-100"
+              className="p-2.5 bg-white shadow-lg border border-slate-200 hover:bg-slate-50 rounded-full transition-all text-slate-400 hover:text-slate-800 focus:outline-none focus:ring-4 focus:ring-slate-100"
             >
-              <FiX size={24} />
+              <FiX size={20} />
             </button>
           </div>
         )}

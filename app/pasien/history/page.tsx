@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiSearch, FiLoader, FiClock } from "react-icons/fi";
 import { getTagihanById } from "@/lib/firebase/firestore";
 import { useAuth } from "@/lib/hooks/useAuth";
@@ -8,6 +8,7 @@ import { useTagihanByPasien } from "@/lib/hooks/useTagihan";
 import InvoiceCard from "@/components/billing/InvoiceCard";
 import InvoiceModal from "@/components/billing/InvoiceModal";
 import ReceiptModal from "@/components/billing/ReceiptModal";
+import Pagination from "@/components/ui/Pagination";
 import { Tagihan } from "@/lib/types";
 
 export default function HistoryPage() {
@@ -18,9 +19,23 @@ export default function HistoryPage() {
   const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Reset page when search changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   const filteredHistory = tagihans.filter(item => 
     (item.poli || "").toLowerCase().includes(search.toLowerCase()) || 
     item.id_tagihan.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
+  const currentItems = filteredHistory.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const handleViewDetail = async (id: string) => {
@@ -69,13 +84,24 @@ export default function HistoryPage() {
 
       <div className="space-y-4">
         {filteredHistory.length > 0 ? (
-          filteredHistory.map((tagihan) => (
-            <InvoiceCard 
-              key={tagihan.id_tagihan} 
-              tagihan={tagihan} 
-              onViewDetail={handleViewDetail}
+          <>
+            {currentItems.map((tagihan) => (
+              <InvoiceCard 
+                key={tagihan.id_tagihan} 
+                tagihan={tagihan} 
+                onViewDetail={handleViewDetail}
+              />
+            ))}
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredHistory.length}
+              itemsPerPage={itemsPerPage}
+              itemName="transaksi"
+              onPageChange={setCurrentPage}
+              className="pt-4 flex flex-col md:flex-row items-center justify-between gap-4"
             />
-          ))
+          </>
         ) : (
           <div className="bg-white p-12 text-center rounded-2xl border border-dashed border-slate-200 shadow-sm flex flex-col items-center">
             <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mb-4 text-slate-200">

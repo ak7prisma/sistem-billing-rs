@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 
 import { useKasirDashboard } from "@/lib/hooks/useKasirDashboard";
 
@@ -6,6 +7,7 @@ import { useKasirDashboard } from "@/lib/hooks/useKasirDashboard";
 import PageHeader from "@/components/ui/PageHeader";
 import SearchBar from "@/components/ui/SearchBar";
 import StatsCard from "@/components/ui/StatsCard";
+import Pagination from "@/components/ui/Pagination";
 import InvoiceModal from "@/components/billing/InvoiceModal";
 import ReceiptModal from "@/components/billing/ReceiptModal";
 
@@ -27,6 +29,21 @@ export default function KasirDashboard() {
     handleActionClick,
     closeModals,
   } = useKasirDashboard();
+
+  const [currentPage, setCurrentPage] = React.useState(1);
+  const itemsPerPage = 10;
+
+  // Reset page when search changes
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const currentItems = filteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -78,7 +95,17 @@ export default function KasirDashboard() {
         ) : filteredData.length === 0 ? (
           <BillingEmptyState />
         ) : (
-          <BillingTable data={filteredData} onAction={handleActionClick} />
+          <>
+            <BillingTable data={currentItems} onAction={handleActionClick} />
+            <Pagination 
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredData.length}
+              itemsPerPage={itemsPerPage}
+              itemName="tagihan"
+              onPageChange={setCurrentPage}
+            />
+          </>
         )}
       </div>
 

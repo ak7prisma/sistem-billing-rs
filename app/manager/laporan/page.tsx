@@ -7,10 +7,9 @@ import ReceiptModal from "@/components/billing/ReceiptModal";
 import { Tagihan } from "@/lib/types";
 import { useFinancialData } from "@/lib/hooks/useFinancialData";
 import { generateFinancialReport } from "@/lib/utils/pdf";
-
-// Manager Components
 import ReportControls from "@/components/manager/ReportControls";
 import TransactionTable from "@/components/manager/TransactionTable";
+import Pagination from "@/components/ui/Pagination";
 
 export default function LaporanManager() {
   const [search, setSearch] = useState("");
@@ -25,9 +24,23 @@ export default function LaporanManager() {
 
   const departments = ["Semua Poli", ...allDepartments];
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
+  // Reset page when search or filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [search, timeRange, selectedPoli]);
+
   const searchFilteredData = filteredTagihans.filter(item => 
     (item.poli || "").toLowerCase().includes(search.toLowerCase()) || 
     item.id_tagihan.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const totalPages = Math.ceil(searchFilteredData.length / itemsPerPage);
+  const currentItems = searchFilteredData.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
   );
 
   const handleViewReceipt = (tagihan: Tagihan) => {
@@ -79,9 +92,17 @@ export default function LaporanManager() {
       {/* 3. Transaction Data Table */}
       <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden min-h-100 flex flex-col">
         <TransactionTable 
-          data={searchFilteredData}
+          data={currentItems}
           loading={loading}
           onViewDetail={handleViewReceipt}
+        />
+        <Pagination 
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={searchFilteredData.length}
+          itemsPerPage={itemsPerPage}
+          itemName="transaksi"
+          onPageChange={setCurrentPage}
         />
       </div>
 
