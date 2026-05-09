@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiHome, FiClock, FiInfo, FiActivity } from "react-icons/fi";
+import { FiActivity } from "react-icons/fi";
 import RoleGuard from "@/components/layout/RoleGuard";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { logout } from "@/lib/firebase/auth";
-import { navItems } from "@/lib/data/navItems";
+import { navItemsPasien } from "@/lib/data/navItems";
 
 export default function PasienLayout({
   children,
@@ -36,7 +36,7 @@ export default function PasienLayout({
         </div>
         
         <div className="hidden md:flex gap-10 text-sm font-bold">
-          {navItems.map((item) => {
+          {navItemsPasien.map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link
@@ -67,7 +67,7 @@ export default function PasienLayout({
 
       {/* Mobile Bottom Nav */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 px-6 py-3 flex justify-around items-center z-50">
-        {navItems.map((item) => {
+        {navItemsPasien.map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link

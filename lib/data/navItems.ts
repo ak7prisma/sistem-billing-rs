@@ -8,8 +8,6 @@ export const navItems = [
 
 export const navItemsKasir = [
       { label: "Overview", href: "/kasir", icon: FiGrid },
-      { label: "Laporan", href: "/kasir/laporan", icon: FiFileText, disabled: true },
-      { label: "Statistik", href: "/kasir/statistik", icon: FiPieChart, disabled: true },
 ];
 
 export const navItemsPasien = [
