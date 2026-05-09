@@ -2,9 +2,10 @@
 
 import React from "react";
 import { formatRupiah } from "@/lib/utils/currency";
+import { RincianTagihan } from "@/lib/types";
 
 interface InvoiceSummaryProps {
-  rincian: any[];
+  rincian: RincianTagihan[];
   tagihanTotal?: number;
   loadingRincian?: boolean;
   children?: React.ReactNode;

@@ -17,8 +17,7 @@ import {
   Legend
 } from "recharts";
 import { formatRupiah } from "@/lib/utils/currency";
-
-const COLORS = ["#8b5cf6", "#10b981", "#3b82f6", "#f59e0b", "#ef4444"];
+import { COLOR_PALETTE } from "@/lib/data/colorStyle";
 
 interface AnalyticsChartsProps {
   charts: {
@@ -79,7 +78,7 @@ export const AnalyticsCharts: React.FC<AnalyticsChartsProps> = ({ charts }) => {
                 />
                 <Bar dataKey="count" radius={[10, 10, 0, 0]} barSize={40}>
                   {charts.departmentShare.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    <Cell key={`cell-${index}`} fill={COLOR_PALETTE[index % COLOR_PALETTE.length]} />
                   ))}
                 </Bar>
               </BarChart>
