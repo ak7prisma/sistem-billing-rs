@@ -27,7 +27,7 @@ export async function POST(req: Request) {
           given_names: customerName,
           email: customerEmail,
         },
-        success_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pasien/history`,
+        success_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/payment/verify?tagihanId=${tagihanId}`,
         failure_redirect_url: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/pasien/invoice/${tagihanId}`,
         currency: "IDR",
         items: [
