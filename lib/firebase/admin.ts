@@ -6,13 +6,32 @@ function getAdminApp(): admin.app.App {
   }
 
   try {
-    const rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT || "{}";
-    // Handle escaped newlines from env files
-    const serviceAccount = JSON.parse(
-      rawServiceAccount.replace(/\\n/g, "\n")
-    );
+    let rawServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT || "{}";
+    
+    // Strip surrounding quotes if Vercel added them
+    if (rawServiceAccount.startsWith('"') && rawServiceAccount.endsWith('"')) {
+      rawServiceAccount = rawServiceAccount.slice(1, -1);
+    } else if (rawServiceAccount.startsWith("'") && rawServiceAccount.endsWith("'")) {
+      rawServiceAccount = rawServiceAccount.slice(1, -1);
+    }
+
+    let serviceAccount;
+    try {
+      // First try standard parsing
+      serviceAccount = JSON.parse(rawServiceAccount);
+    } catch (e) {
+      // If Vercel converted literal \n to actual newlines, JSON.parse will fail.
+      // We fix the JSON string by escaping real newlines back to \n
+      const fixedRaw = rawServiceAccount.replace(/\n/g, "\\n");
+      serviceAccount = JSON.parse(fixedRaw);
+    }
 
     if (serviceAccount.project_id) {
+      // Firebase requires actual newlines in the private key, not the string "\n"
+      if (serviceAccount.private_key) {
+        serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, "\n");
+      }
+      
       return admin.initializeApp({
         credential: admin.credential.cert(serviceAccount),
       });
