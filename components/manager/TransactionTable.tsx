@@ -52,7 +52,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, loading, onVi
             <tr key={item.id_tagihan} className="hover:bg-slate-50/50 transition group">
               <td className="p-6 pl-10">
                 <span className="font-black text-slate-800 group-hover:text-blue-600 transition-colors uppercase tracking-tight">
-                  #{item.id_tagihan.slice(0, 8).toUpperCase()}
+                  #{item.id_tagihan.toUpperCase()}
                 </span>
               </td>
               <td className="p-6">

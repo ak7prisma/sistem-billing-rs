@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { FiPlus, FiTrash2, FiSave, FiActivity, FiDatabase, FiCheckCircle, FiChevronDown, FiChevronUp } from "react-icons/fi";
-import { seedPasienData, seedDemoPasien, seedTransaksiSampleData } from "@/lib/firebase/seed";
 import { MASTER_OBAT, MASTER_LAYANAN_MEDIS, MASTER_LAYANAN_LABOR, MASTER_POLI } from "@/lib/data/master";
 import { getAllData } from "@/lib/firebase/firestore";
 import { Pasien } from "@/lib/types";
@@ -169,7 +168,7 @@ export default function SeedPage() {
                   {[
                     // { label: "1. Pasien Demo", fn: seedDemoPasien, color: "bg-blue-600" },
                     // { label: "2. Pasien & Auth", fn: seedPasienData, color: "bg-indigo-600" },
-                    { label: "Transaksi Sampel", fn: seedTransaksiSampleData, color: "bg-emerald-600" },
+                    // { label: "Transaksi Sampel", fn: seedTransaksiSampleData, color: "bg-emerald-600" },
                   ].filter(s => s).map((s: any) => (
                     <button
                       key={s.label}
