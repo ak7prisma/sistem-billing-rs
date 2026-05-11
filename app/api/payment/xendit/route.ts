@@ -62,7 +62,7 @@ export async function POST(req: Request) {
           given_names: customerName,
           email: customerEmail,
         },
-        success_redirect_url: `${baseUrl}/api/payment/verify?tagihanId=${tagihanId}`,
+        success_redirect_url: `${baseUrl}/pasien/history`,
         failure_redirect_url: `${baseUrl}/pasien/invoice/${tagihanId}`,
         currency: "IDR",
         items: [
