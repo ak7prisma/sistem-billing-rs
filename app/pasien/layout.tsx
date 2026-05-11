@@ -28,8 +28,11 @@ export default function PasienLayout({
       <div className="min-h-screen flex flex-col">
       {/* Desktop Navbar */}
       <nav className="bg-white px-4 md:px-8 py-4 shadow-sm flex justify-between items-center border-b border-slate-200 sticky top-0 z-50">
-        <div className="flex items-center gap-3 w-auto md:w-48">
-          <Image src="/logotext.png" alt="Logo" width={120} height={32} priority className="h-8 w-auto object-contain" />
+        <div className="flex items-center gap-2 w-auto md:w-64">
+          <Image src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" />
+          <span className="text-slate-900 font-black tracking-tighter text-xl flex items-center">
+            Satria<span className="text-violet-600 ml-1">Billing</span>
+          </span>
         </div>
         
         <div className="hidden md:flex gap-10 text-sm font-bold">

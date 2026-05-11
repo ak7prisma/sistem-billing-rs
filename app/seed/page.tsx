@@ -167,10 +167,10 @@ export default function SeedPage() {
                 </h2>
                 <div className="space-y-3">
                   {[
-                    { label: "1. Pasien Demo", fn: seedDemoPasien, color: "bg-blue-600" },
-                    { label: "2. Pasien & Auth", fn: seedPasienData, color: "bg-indigo-600" },
-                    { label: "3. Transaksi Sampel", fn: seedTransaksiSampleData, color: "bg-emerald-600" },
-                  ].map((s) => (
+                    // { label: "1. Pasien Demo", fn: seedDemoPasien, color: "bg-blue-600" },
+                    // { label: "2. Pasien & Auth", fn: seedPasienData, color: "bg-indigo-600" },
+                    { label: "Transaksi Sampel", fn: seedTransaksiSampleData, color: "bg-emerald-600" },
+                  ].filter(s => s).map((s: any) => (
                     <button
                       key={s.label}
                       onClick={() => run(s.label, s.fn)}
@@ -184,6 +184,9 @@ export default function SeedPage() {
                     </button>
                   ))}
                 </div>
+                <p className="mt-4 text-[9px] text-slate-400 font-bold uppercase tracking-widest text-center px-4">
+                  Note: Patient creation scripts are disabled to prevent data conflicts.
+                </p>
               </div>
 
               <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl border border-slate-800">
