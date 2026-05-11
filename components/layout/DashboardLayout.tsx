@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiActivity, FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import { FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import Image from "next/image";
 import RoleGuard from "./RoleGuard";
 import { UserRole } from "@/lib/types";
 
@@ -18,8 +19,6 @@ interface DashboardLayoutProps {
   children: React.ReactNode;
   navItems: NavItem[];
   allowedRole: UserRole;
-  brandName: string;
-  brandSubName?: string;
   gradient?: string;
 }
 
@@ -27,8 +26,6 @@ export default function DashboardLayout({
   children,
   navItems,
   allowedRole,
-  brandName,
-  brandSubName = "Billing",
   gradient = "from-blue-600 to-indigo-600"
 }: Readonly<DashboardLayoutProps>) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -41,11 +38,11 @@ export default function DashboardLayout({
       <div className="flex flex-col md:flex-row h-screen overflow-hidden text-slate-800 bg-[#f8fafc]">
         {/* Mobile Top Header */}
         <header className="md:hidden bg-slate-900 p-4 flex justify-between items-center z-30 shadow-md">
-          <div className="flex items-center gap-3">
-            <div className={`w-8 h-8 bg-linear-to-tr ${gradient} rounded flex items-center justify-center`}>
-              <FiActivity className="text-white w-4 h-4" />
-            </div>
-            <span className="text-white font-bold tracking-wider uppercase text-sm">{brandName} {brandSubName}</span>
+          <div className="flex items-center gap-2">
+            <Image src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" />
+            <span className="text-white font-black tracking-tighter text-lg flex items-center">
+              Satria<span className="text-emerald-400 ml-1">Billing</span>
+            </span>
           </div>
           <button onClick={toggleSidebar} className="text-white p-2">
             {isSidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -59,15 +56,12 @@ export default function DashboardLayout({
           } md:translate-x-0 md:relative transition-transform duration-300 ease-in-out`}
         >
           <div>
-            <div className="p-8 hidden md:flex items-center gap-3">
-              <div className={`w-8 h-8 bg-linear-to-tr ${gradient} rounded flex items-center justify-center shadow-lg`}>
-                <FiActivity className="text-white w-4 h-4" />
-              </div>
-              <div className="leading-none">
-                <h1 className="text-lg font-black uppercase tracking-wider text-white">{brandName}</h1>
-                <h1 className="text-sm font-bold uppercase tracking-widest text-slate-500">{brandSubName}</h1>
-              </div>
-            </div>
+          <div className="px-5 p-8 hidden md:flex items-center gap-3">
+            <Image src="/logo.png" alt="Logo" width={40} height={40} className="object-contain" />
+            <span className="text-white font-black tracking-tighter text-2xl flex items-center">
+              Satria<span className="text-emerald-400 ml-1">Billing</span>
+            </span>
+          </div>
 
             <div className="px-8 py-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mt-4 md:mt-0">Main Portal</div>
 

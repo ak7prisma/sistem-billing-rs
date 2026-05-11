@@ -10,7 +10,7 @@ interface RoleGuardProps {
   allowedRoles: UserRole[];
 }
 
-export default function RoleGuard({ children, allowedRoles }: RoleGuardProps) {
+export default function RoleGuard({ children, allowedRoles }: Readonly<RoleGuardProps>) {
   const { user, role, loading } = useAuth();
   const router = useRouter();
 

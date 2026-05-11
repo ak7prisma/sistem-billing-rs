@@ -14,9 +14,7 @@ export default function KasirLayout({
   return (
     <DashboardLayout 
       navItems={navItemsKasir} 
-      allowedRole="kasir" 
-      brandName="Satria" 
-      brandSubName="Kasir"
+      allowedRole="kasir"
       gradient="from-emerald-500 to-teal-600"
     >
       {children}

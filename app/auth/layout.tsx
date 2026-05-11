@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FiActivity } from "react-icons/fi";
+import Image from "next/image";
 
 export default function AuthLayout({
   children,
@@ -11,8 +11,14 @@ export default function AuthLayout({
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
       <div className="mb-8 flex flex-col items-center gap-4">
-        <div className="w-16 h-16 bg-gradient-to-tr from-emerald-500 to-violet-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-violet-500/20 transform -rotate-6">
-          <FiActivity className="text-white w-8 h-8" />
+        <div className="relative w-20 h-20 transform">
+          <Image 
+            src="/logo.png" 
+            alt="Logo" 
+            fill 
+            className="object-contain"
+            priority 
+          />
         </div>
         <div className="text-center">
           <h1 className="text-3xl font-black uppercase tracking-tighter text-slate-900">Satria Billing</h1>

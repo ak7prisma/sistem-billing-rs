@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FiActivity } from "react-icons/fi";
+import Image from "next/image";
 import RoleGuard from "@/components/layout/RoleGuard";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { logout } from "@/lib/firebase/auth";
@@ -29,10 +29,7 @@ export default function PasienLayout({
       {/* Desktop Navbar */}
       <nav className="bg-white px-4 md:px-8 py-4 shadow-sm flex justify-between items-center border-b border-slate-200 sticky top-0 z-50">
         <div className="flex items-center gap-3 w-auto md:w-48">
-          <div className="w-8 h-8 bg-linear-to-tr from-emerald-500 to-violet-500 rounded flex items-center justify-center">
-            <FiActivity className="text-white w-4 h-4" />
-          </div>
-          <span className="text-lg font-bold text-slate-800 tracking-wide uppercase">Satria</span>
+          <Image src="/logotext.png" alt="Logo" width={120} height={32} priority className="h-8 w-auto object-contain" />
         </div>
         
         <div className="hidden md:flex gap-10 text-sm font-bold">

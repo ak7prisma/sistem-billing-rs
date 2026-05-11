@@ -14,8 +14,6 @@ export default function ManagerLayout({
     <DashboardLayout 
       navItems={navItems} 
       allowedRole="manajer" 
-      brandName="Satria" 
-      brandSubName="Manager"
       gradient="from-blue-600 to-indigo-600"
     >
       {children}
