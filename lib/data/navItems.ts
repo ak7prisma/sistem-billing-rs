@@ -1,9 +1,12 @@
-import { FiPieChart, FiFileText, FiUsers, FiGrid, FiClock, FiHome, FiInfo } from "react-icons/fi";
+import { FiPieChart, FiFileText, FiUsers, FiGrid, FiClock, FiHome, FiInfo, FiShield, FiPackage, FiActivity, FiLayers } from "react-icons/fi";
 
 export const navItems = [
     { label: "Overview", href: "/manager", icon: FiPieChart },
-    { label: "Laporan", href: "/manager/laporan", icon: FiFileText },
+    { label: "Laporan Obat", href: "/manager/laporan/obat", icon: FiPackage },
+    { label: "Laporan Tindakan", href: "/manager/laporan/tindakan", icon: FiActivity },
+    { label: "Laporan Labor", href: "/manager/laporan/labor", icon: FiLayers },
     { label: "Data Pasien", href: "/manager/pasien", icon: FiUsers },
+    { label: "Semua Transaksi", href: "/manager/laporan", icon: FiFileText },
   ];
 
 export const navItemsKasir = [

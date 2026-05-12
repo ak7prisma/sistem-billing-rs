@@ -1,18 +1,26 @@
 "use client";
 
 import React from "react";
-import { FiEye, FiSearch, FiLoader } from "react-icons/fi";
-import { Tagihan } from "@/lib/types";
+import { FiEye, FiSearch, FiLoader, FiShield } from "react-icons/fi";
+import { Tagihan, Pembayaran } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils/currency";
 import StatusBadge from "@/components/ui/StatusBadge";
 
 interface TransactionTableProps {
   data: Tagihan[];
+  pembayaranMap: Record<string, Pembayaran>;
   loading: boolean;
   onViewDetail: (tagihan: Tagihan) => void;
+  filterJenis?: "obat" | "medis" | "laboratorium";
 }
 
-const TransactionTable: React.FC<TransactionTableProps> = ({ data, loading, onViewDetail }) => {
+const TransactionTable: React.FC<TransactionTableProps> = ({ 
+  data, 
+  pembayaranMap, 
+  loading, 
+  onViewDetail,
+  filterJenis 
+}) => {
   if (loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-20">
@@ -34,56 +42,100 @@ const TransactionTable: React.FC<TransactionTableProps> = ({ data, loading, onVi
     );
   }
 
+  const parseDate = (tanggal: any) => {
+    if (!tanggal) return "N/A";
+    let date: Date;
+    if (tanggal.seconds) {
+      date = new Date(tanggal.seconds * 1000);
+    } else if (tanggal instanceof Date) {
+      date = tanggal;
+    } else {
+      date = new Date(tanggal);
+    }
+    return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+  };
+
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse min-w-[900px]">
+      <table className="w-full text-left border-collapse min-w-[960px]">
         <thead className="bg-slate-50/50 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">
           <tr>
             <th className="p-6 pl-10">Invoice ID</th>
             <th className="p-6">Poli / Layanan</th>
             <th className="p-6">Tanggal</th>
-            <th className="p-6">Total Tagihan</th>
+            <th className="p-6 text-right text-emerald-600">
+              {filterJenis ? `BPJS ${filterJenis}` : "Cover BPJS"}
+            </th>
+            <th className="p-6 text-right text-violet-600">
+              {filterJenis ? `Pemasukan ${filterJenis}` : "Iur Biaya"}
+            </th>
             <th className="p-6 text-center">Status</th>
             <th className="p-6 pr-10 text-right">Aksi</th>
           </tr>
         </thead>
         <tbody className="text-sm divide-y divide-slate-50">
-          {data.map((item) => (
-            <tr key={item.id_tagihan} className="hover:bg-slate-50/50 transition group">
-              <td className="p-6 pl-10">
-                <span className="font-black text-slate-800 group-hover:text-blue-600 transition-colors uppercase tracking-tight">
-                  #{item.id_tagihan.toUpperCase()}
-                </span>
-              </td>
-              <td className="p-6">
-                <div className="flex flex-col">
-                  <span className="font-bold text-slate-700">{item.poli || "Umum"}</span>
-                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-                    {(item.rincian?.length || 0)} Items
-                  </span>
-                </div>
-              </td>
-              <td className="p-6 text-slate-400 font-bold text-[11px] uppercase tracking-wider">
-                {item.tanggal?.seconds ? new Date(item.tanggal.seconds * 1000).toLocaleDateString("id-ID", {
-                   day: '2-digit',
-                   month: 'short',
-                   year: 'numeric'
-                }) : "N/A"}
-              </td>
-              <td className="p-6 font-black text-slate-800">{formatRupiah(item.total_biaya)}</td>
-              <td className="p-6 text-center">
-                <StatusBadge status={item.status as any} />
-              </td>
-              <td className="p-6 pr-10 text-right">
-                <button 
-                  onClick={() => onViewDetail(item)}
-                  className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest shadow-sm active:scale-95"
-                >
-                  <FiEye /> Detail
-                </button>
-              </td>
-            </tr>
-          ))}
+          {data.map((item) => {
+            const pembayaran = pembayaranMap[item.id_tagihan];
+            
+            let totalBpjs = 0;
+            let totalIur = 0;
+
+            if (filterJenis) {
+              const rincianFiltered = (item.rincian || []).filter(r => r.jenis === filterJenis);
+              totalBpjs = rincianFiltered.filter(r => r.is_covered_bpjs).reduce((s, r) => s + (r.subtotal || 0), 0);
+              totalIur = rincianFiltered.filter(r => !r.is_covered_bpjs).reduce((s, r) => s + (r.subtotal || 0), 0);
+            } else {
+              totalBpjs = pembayaran?.cover_bpjs || 0;
+              totalIur = pembayaran?.iur_biaya ?? item.total_biaya;
+            }
+
+            const hasBpjs = totalBpjs > 0;
+
+            return (
+              <tr key={item.id_tagihan} className="hover:bg-slate-50/50 transition group">
+                <td className="p-6 pl-10">
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-slate-800 group-hover:text-blue-600 transition-colors uppercase tracking-tight">
+                      #{item.id_tagihan.toUpperCase()}
+                    </span>
+                    {hasBpjs && (
+                      <span className="inline-flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 bg-emerald-50 text-emerald-600 rounded border border-emerald-100 uppercase">
+                        <FiShield size={8} /> BPJS
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className="p-6">
+                  <div className="flex flex-col">
+                    <span className="font-bold text-slate-700">{item.poli || "Umum"}</span>
+                    <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">
+                      {(item.rincian?.length || 0)} Items
+                    </span>
+                  </div>
+                </td>
+                <td className="p-6 text-slate-400 font-bold text-[11px] uppercase tracking-wider">
+                  {parseDate(item.tanggal)}
+                </td>
+                <td className="p-6 text-right font-bold text-emerald-600 font-mono text-xs">
+                  {totalBpjs > 0 ? formatRupiah(totalBpjs) : <span className="text-slate-300">—</span>}
+                </td>
+                <td className="p-6 text-right font-black text-violet-600 font-mono text-xs">
+                  {formatRupiah(totalIur)}
+                </td>
+                <td className="p-6 text-center">
+                  <StatusBadge status={item.status as any} />
+                </td>
+                <td className="p-6 pr-10 text-right">
+                  <button
+                    onClick={() => onViewDetail(item)}
+                    className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest shadow-sm active:scale-95"
+                  >
+                    <FiEye /> Detail
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { FiDownload, FiLoader } from "react-icons/fi";
 import PageHeader from "@/components/ui/PageHeader";
-import ReceiptModal from "@/components/billing/ReceiptModal";
+import TransactionDetailModal from "@/components/manager/TransactionDetailModal";
 import { Tagihan } from "@/lib/types";
 import { useFinancialData } from "@/lib/hooks/useFinancialData";
 import { generateFinancialReport } from "@/lib/utils/pdf";
@@ -16,26 +16,29 @@ export default function LaporanManager() {
   const [timeRange, setTimeRange] = useState("Semua Waktu");
   const [selectedPoli, setSelectedPoli] = useState("Semua Poli");
   const [isExporting, setIsExporting] = useState(false);
-  
-  const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
-  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
-  const { stats, charts, allDepartments, filteredTagihans, loading } = useFinancialData(timeRange, selectedPoli);
+  const [selectedTagihan, setSelectedTagihan] = useState<Tagihan | null>(null);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  // Note: Jenis filter removed here as it's now on the Overview dashboard
+  const { stats, charts, allDepartments, filteredTagihans, pembayaranMap, loading } = useFinancialData(timeRange, selectedPoli);
 
   const departments = ["Semua Poli", ...allDepartments];
 
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Reset page when search or filters change
   React.useEffect(() => {
     setCurrentPage(1);
   }, [search, timeRange, selectedPoli]);
 
-  const searchFilteredData = filteredTagihans.filter(item => 
-    (item.poli || "").toLowerCase().includes(search.toLowerCase()) || 
-    item.id_tagihan.toLowerCase().includes(search.toLowerCase())
-  );
+  // Filter by search
+  const searchFilteredData = filteredTagihans.filter(item => {
+    return (
+      (item.poli || "").toLowerCase().includes(search.toLowerCase()) ||
+      item.id_tagihan.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
   const totalPages = Math.ceil(searchFilteredData.length / itemsPerPage);
   const currentItems = searchFilteredData.slice(
@@ -43,9 +46,9 @@ export default function LaporanManager() {
     currentPage * itemsPerPage
   );
 
-  const handleViewReceipt = (tagihan: Tagihan) => {
+  const handleViewDetail = (tagihan: Tagihan) => {
     setSelectedTagihan(tagihan);
-    setIsReceiptModalOpen(true);
+    setIsDetailOpen(true);
   };
 
   const handleExport = async () => {
@@ -62,13 +65,12 @@ export default function LaporanManager() {
 
   return (
     <div className="space-y-6 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* 1. Header with Title & Export Action */}
-      <PageHeader 
-        title="Laporan Transaksi" 
+      <PageHeader
+        title="Laporan Transaksi"
         subtitle="Audit dan rekapitulasi data pembayaran pasien."
         badge="Audit Mode"
       >
-        <button 
+        <button
           onClick={handleExport}
           disabled={isExporting}
           className="flex items-center justify-center gap-2 bg-slate-900 text-white px-6 py-3 h-[46px] rounded-2xl text-[10px] font-black shadow-lg hover:bg-slate-800 transition uppercase tracking-[0.2em] disabled:opacity-50 whitespace-nowrap active:scale-95"
@@ -78,8 +80,7 @@ export default function LaporanManager() {
         </button>
       </PageHeader>
 
-      {/* 2. Unified Search & Filter Controls */}
-      <ReportControls 
+      <ReportControls
         search={search}
         setSearch={setSearch}
         timeRange={timeRange}
@@ -89,14 +90,14 @@ export default function LaporanManager() {
         departments={departments}
       />
 
-      {/* 3. Transaction Data Table */}
       <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl overflow-hidden min-h-100 flex flex-col">
-        <TransactionTable 
+        <TransactionTable
           data={currentItems}
+          pembayaranMap={pembayaranMap}
           loading={loading}
-          onViewDetail={handleViewReceipt}
+          onViewDetail={handleViewDetail}
         />
-        <Pagination 
+        <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={searchFilteredData.length}
@@ -106,10 +107,10 @@ export default function LaporanManager() {
         />
       </div>
 
-      {/* Detail Modal */}
-      <ReceiptModal 
-        isOpen={isReceiptModalOpen}
-        onClose={() => setIsReceiptModalOpen(false)}
+      {/* Detail Modal — no print, manager audit view */}
+      <TransactionDetailModal
+        isOpen={isDetailOpen}
+        onClose={() => setIsDetailOpen(false)}
         tagihan={selectedTagihan}
       />
     </div>

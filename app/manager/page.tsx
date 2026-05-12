@@ -8,18 +8,18 @@ import ManagerFilters from "@/components/manager/ManagerFilters";
 import StatGrid from "@/components/manager/StatGrid";
 import { AnalyticsCharts } from "@/components/manager/AnalyticsCharts";
 import ExportCard from "@/components/manager/ExportCard";
+import BpjsStatsSection from "@/components/manager/BpjsStatsSection";
 
 export default function ManagerDashboard() {
   const [mounted, setMounted] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [timeRange, setTimeRange] = useState("7 Hari Terakhir");
   const [selectedPoli, setSelectedPoli] = useState("Semua Poli");
+  const [selectedJenis, setSelectedJenis] = useState("semua");
 
-  const { stats, charts, allDepartments, loading } = useFinancialData(timeRange, selectedPoli);
+  const { stats, charts, allDepartments, loading } = useFinancialData(timeRange, selectedPoli, selectedJenis);
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => { setMounted(true); }, []);
 
   const handleExport = async () => {
     setIsExporting(true);
@@ -50,23 +50,26 @@ export default function ManagerDashboard() {
 
   return (
     <div className="space-y-10 pb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-
-      <ManagerFilters 
+      <ManagerFilters
         timeRange={timeRange}
         setTimeRange={setTimeRange}
         selectedPoli={selectedPoli}
         setSelectedPoli={setSelectedPoli}
         departments={departments}
+        selectedJenis={selectedJenis}
+        setSelectedJenis={setSelectedJenis}
       />
 
       <StatGrid stats={stats} />
 
       <AnalyticsCharts charts={charts} />
 
-      <ExportCard 
-        onExport={handleExport} 
-        isExporting={isExporting} 
-      />
+      {/* Laporan BPJS */}
+      <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-8 md:p-10">
+        <BpjsStatsSection stats={stats} />
+      </div>
+
+      <ExportCard onExport={handleExport} isExporting={isExporting} />
     </div>
   );
 }
