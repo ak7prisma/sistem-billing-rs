@@ -68,6 +68,7 @@ export interface Tagihan {
   total_biaya: number;
   rincian: RincianTagihan[];
   createdAt?: any;
+  updatedAt?: any;
 }
 
 export interface Pembayaran {

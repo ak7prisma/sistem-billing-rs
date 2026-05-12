@@ -93,9 +93,11 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 </div>
                 <div>
                    <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Transaksi Dikonfirmasi</p>
-                   <p className="text-sm font-black text-emerald-800 uppercase tracking-tight">
-                     {pembayaran?.tanggal_pembayaran ? parseDate(pembayaran.tanggal_pembayaran) : parseDate(tagihan.updatedAt)}
-                   </p>
+                    <p className="text-sm font-black text-emerald-800 uppercase tracking-tight">
+                      {pembayaran?.tanggal_pembayaran 
+                        ? parseDate(pembayaran.tanggal_pembayaran) 
+                        : parseDate(tagihan.updatedAt || tagihan.createdAt)}
+                    </p>
                 </div>
              </div>
              <div className="flex items-center gap-3 pl-4 md:border-l border-emerald-100">

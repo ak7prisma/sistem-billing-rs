@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { FiPlus, FiTrash2, FiSave, FiActivity, FiDatabase, FiCheckCircle, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiSave, FiActivity, FiDatabase, FiCheckCircle, FiChevronDown, FiChevronUp, FiUser, FiCreditCard, FiHash, FiMapPin, FiLayers, FiPackage, FiSearch } from "react-icons/fi";
 import { MASTER_OBAT, MASTER_LAYANAN_MEDIS, MASTER_LAYANAN_LABOR, MASTER_POLI } from "@/lib/data/master";
 import { getAllData } from "@/lib/firebase/firestore";
 import { Pasien } from "@/lib/types";
@@ -16,7 +16,7 @@ export default function SeedPage() {
 
   const [pasienList, setPasienList] = useState<Pasien[]>([]);
   const [selectedPasienId, setSelectedPasienId] = useState("");
-  const [poli, setPoli] = useState("Poli Umum");
+  const [currentPoli, setCurrentPoli] = useState("Poli Umum");
   const [cart, setCart] = useState<any[]>([]);
 
   useEffect(() => {
@@ -36,42 +36,34 @@ export default function SeedPage() {
     setStatus(prev => [...prev, `${new Date().toLocaleTimeString()}: ${msg}`]);
   };
 
-  const run = async (label: string, fn: () => Promise<void>) => {
-    setLoading(true);
-    addStatus(`Mulai: ${label}...`);
-    try {
-      await fn();
-      addStatus(`✅ Selesai: ${label}`);
-      if (label.includes("Pasien")) fetchPasien();
-    } catch (e: any) {
-      addStatus(`❌ Error: ${e.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const selectedPasien = pasienList.find(p => p.id === selectedPasienId);
 
   const addItem = (item: any, jenis: "obat" | "medis" | "laboratorium") => {
-    const existing = cart.find(c => c.id === (item.id_obat || item.id_layanan_medis || item.id_layanan_labor));
+    // Unique ID based on ID + Poli (if medical)
+    const itemPoli = jenis === "medis" ? currentPoli : "Instansi Luar";
+    const uniqueId = `${item.id_obat || item.id_layanan_medis || item.id_layanan_labor}-${itemPoli}`;
+    
+    const existing = cart.find(c => c.uniqueId === uniqueId);
     if (existing) {
-      setCart(cart.map(c => c.id === existing.id ? { ...c, qty: c.qty + 1 } : c));
+      setCart(cart.map(c => c.uniqueId === uniqueId ? { ...c, qty: c.qty + 1 } : c));
     } else {
       setCart([...cart, {
+        uniqueId,
         id: item.id_obat || item.id_layanan_medis || item.id_layanan_labor,
         nama: item.nama_obat || item.nama_layanan,
         harga: item.harga,
         is_covered_bpjs_master: item.is_covered_bpjs,
         jenis,
+        poli: itemPoli,
         qty: 1
       }]);
     }
   };
 
-  const removeItem = (id: string) => setCart(cart.filter(c => c.id !== id));
+  const removeItem = (uniqueId: string) => setCart(cart.filter(c => c.uniqueId !== uniqueId));
 
-  const updateQty = (id: string, delta: number) => {
-    setCart(cart.map(c => c.id === id ? { ...c, qty: Math.max(1, c.qty + delta) } : c));
+  const updateQty = (uniqueId: string, delta: number) => {
+    setCart(cart.map(c => c.uniqueId === uniqueId ? { ...c, qty: Math.max(1, c.qty + delta) } : c));
   };
 
   const handleCreateCustomInvoice = async () => {
@@ -81,7 +73,7 @@ export default function SeedPage() {
     }
 
     setLoading(true);
-    addStatus(`Membangun Invoice Custom untuk ${selectedPasien?.nama}...`);
+    addStatus(`Membangun Invoice Terintegrasi untuk ${selectedPasien?.nama}...`);
     try {
       const batch = writeBatch(db);
       const tagihanId = `INV-SEED-${Date.now()}`;
@@ -89,6 +81,13 @@ export default function SeedPage() {
 
       let totalIur = 0;
       let totalCover = 0;
+
+      // Extract unique polis from medical items
+      const uniquePolis = Array.from(new Set(
+        cart.filter(item => item.jenis === "medis").map(item => item.poli)
+      ));
+      
+      const finalPoliString = uniquePolis.length > 0 ? uniquePolis.join(", ") : "Umum";
 
       cart.forEach((item, idx) => {
         const covered = isBpjs && item.is_covered_bpjs_master;
@@ -101,6 +100,7 @@ export default function SeedPage() {
           id_tagihan: tagihanId,
           nama_layanan: item.nama,
           jenis: item.jenis,
+          poli: item.poli, // Store poli for each item
           jumlah: item.qty,
           subtotal: subtotal,
           is_covered_bpjs: covered,
@@ -111,7 +111,7 @@ export default function SeedPage() {
       batch.set(doc(db, "tagihan", tagihanId), {
         id_tagihan: tagihanId,
         pasien_id: selectedPasienId,
-        poli,
+        poli: finalPoliString, // Now contains multiple polis if any
         tanggal: new Date().toISOString().split('T')[0],
         status: "pending",
         total_biaya: totalIur,
@@ -120,7 +120,7 @@ export default function SeedPage() {
       });
 
       await batch.commit();
-      addStatus(`✅ Sukses! Invoice ${tagihanId} dibuat.`);
+      addStatus(`✅ Sukses! Invoice ${tagihanId} dibuat dengan poli: ${finalPoliString}`);
       setCart([]);
     } catch (err: any) {
       addStatus(`❌ Error: ${err.message}`);
@@ -138,207 +138,261 @@ export default function SeedPage() {
 
   return (
     <RoleGuard allowedRoles={["developer"]}>
-      <div className="min-h-screen bg-slate-50 p-6 md:p-10 font-sans">
-        <div className="max-w-6xl mx-auto space-y-8">
+      <div className="min-h-screen bg-[#f8fafc] p-4 md:p-10 font-sans">
+        <div className="max-w-7xl mx-auto space-y-8">
+          {/* Header */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="flex items-center gap-5">
-              <div className="w-16 h-16 bg-slate-900 rounded-4xl flex items-center justify-center shadow-2xl shadow-slate-200">
-                <FiDatabase className="text-white text-3xl" />
+              <div className="w-16 h-16 bg-slate-900 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-slate-200 ring-8 ring-white">
+                <FiDatabase className="text-white text-2xl" />
               </div>
               <div>
-                <h1 className="text-3xl font-black text-slate-800 tracking-tight uppercase">Dev <span className="text-indigo-600">Seeder</span></h1>
-                <p className="text-sm text-slate-400 font-bold uppercase tracking-widest">Environment: Development</p>
+                <h1 className="text-3xl font-black text-slate-800 tracking-tight uppercase">RS <span className="text-blue-600">Seeder</span></h1>
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Environment: Development v2.0</p>
               </div>
             </div>
-            <div className="bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm">
+            <div className="bg-white px-6 py-3 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-6">
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Firebase Connected</span>
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Live Sync</span>
+              </div>
+              <div className="h-4 w-px bg-slate-100" />
+              <div className="flex items-center gap-3">
+                <FiCheckCircle className="text-blue-500" />
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Firebase Cloud</span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            <div className="lg:col-span-5 space-y-6">
-              <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
-                <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-6 flex items-center gap-3">
-                  <FiActivity /> Automated Scripts
-                </h2>
-                <div className="space-y-3">
-                  {[
-                    // { label: "1. Pasien Demo", fn: seedDemoPasien, color: "bg-blue-600" },
-                    // { label: "2. Pasien & Auth", fn: seedPasienData, color: "bg-indigo-600" },
-                    // { label: "Transaksi Sampel", fn: seedTransaksiSampleData, color: "bg-emerald-600" },
-                  ].filter(s => s).map((s: any) => (
-                    <button
-                      key={s.label}
-                      onClick={() => run(s.label, s.fn)}
-                      disabled={loading}
-                      className="w-full group flex items-center justify-between p-4 rounded-2xl bg-slate-50 hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all border border-transparent hover:border-slate-100"
-                    >
-                      <span className="text-xs font-black text-slate-700 uppercase tracking-wider">{s.label}</span>
-                      <div className={`w-8 h-8 ${s.color} rounded-xl flex items-center justify-center text-white opacity-40 group-hover:opacity-100 transition-all`}>
-                        <FiCheckCircle size={14} />
-                      </div>
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-4 text-[9px] text-slate-400 font-bold uppercase tracking-widest text-center px-4">
-                  Note: Patient creation scripts are disabled to prevent data conflicts.
-                </p>
-              </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left: Logs and Patient Detail */}
+            <div className="lg:col-span-4 space-y-8">
+               {/* Patient Detail Card */}
+               {selectedPasien ? (
+                 <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 animate-in fade-in zoom-in-95 duration-500">
+                    <div className="flex items-center gap-4 mb-8">
+                       <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center shadow-inner">
+                          <FiUser size={28} />
+                       </div>
+                       <div>
+                          <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight leading-tight">{selectedPasien.nama}</h2>
+                          <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em]">{selectedPasien.tipe_penjamin} Member</p>
+                       </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100/50">
+                          <FiHash className="text-slate-300 mb-1" />
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">No. RM</p>
+                          <p className="text-xs font-black text-slate-700">{selectedPasien.no_rm}</p>
+                       </div>
+                       <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100/50">
+                          <FiCreditCard className="text-slate-300 mb-1" />
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Penjamin</p>
+                          <p className="text-xs font-black text-slate-700 uppercase">{selectedPasien.tipe_penjamin}</p>
+                       </div>
+                       <div className="col-span-2 p-4 bg-slate-50 rounded-2xl border border-slate-100/50">
+                          <FiMapPin className="text-slate-300 mb-1" />
+                          <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Alamat / Instansi</p>
+                          <p className="text-[10px] font-bold text-slate-600">Jakarta Selatan, Indonesia</p>
+                       </div>
+                    </div>
+                 </div>
+               ) : (
+                 <div className="bg-slate-200/30 rounded-[2.5rem] p-12 flex flex-col items-center justify-center text-center border-2 border-dashed border-slate-200">
+                    <FiUser className="text-slate-300 mb-4" size={48} />
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Pilih Pasien Terlebih Dahulu</p>
+                 </div>
+               )}
 
               <div className="bg-slate-900 rounded-[2.5rem] p-8 shadow-2xl border border-slate-800">
-                <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Execution Logs</h2>
-                <div className="space-y-1 font-mono text-[10px] min-h-75 max-h-100 overflow-y-auto scrollbar-hide">
+                <h2 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4">Execution Console</h2>
+                <div className="space-y-1 font-mono text-[10px] min-h-60 max-h-80 overflow-y-auto scrollbar-hide">
                   {status.map((s, i) => (
                     <div key={i} className="flex gap-3 text-emerald-500/80">
                       <span className="text-slate-700 shrink-0">[{i + 1}]</span>
                       <span>{s}</span>
                     </div>
                   ))}
-                  {loading && <div className="text-indigo-400 animate-pulse italic mt-2 ml-7">Processing command...</div>}
-                  {status.length === 0 && !loading && <div className="text-slate-700 italic ml-7">System ready. Awaiting input.</div>}
+                  {loading && <div className="text-indigo-400 animate-pulse italic mt-2 ml-7">Executing Batch Operation...</div>}
                 </div>
               </div>
             </div>
 
-            <div className="lg:col-span-7">
-              <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                <button
-                  onClick={() => setShowInteractive(!showInteractive)}
-                  className="w-full p-8 flex items-center justify-between bg-white hover:bg-slate-50 transition"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-violet-50 text-violet-600 rounded-2xl flex items-center justify-center">
-                      <FiPlus size={24} />
-                    </div>
-                    <div className="text-left">
-                      <h2 className="text-lg font-black text-slate-800 uppercase tracking-tight">Interactive <span className="text-violet-600">Invoice Builder</span></h2>
-                      <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-0.5">Custom Transaction Generator</p>
-                    </div>
-                  </div>
-                  {showInteractive ? <FiChevronUp /> : <FiChevronDown />}
-                </button>
-
-                {showInteractive && (
-                  <div className="p-8 pt-0 border-t border-slate-50 space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Select Patient</label>
+            {/* Right: Invoice Builder */}
+            <div className="lg:col-span-8">
+              <div className="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 border border-slate-100 overflow-hidden">
+                <div className="p-8 pb-0 space-y-8">
+                  {/* Step 1: Selection Header */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">1. Pilih Pasien</label>
+                      <div className="relative">
+                        <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                         <select
                           value={selectedPasienId}
                           onChange={(e) => setSelectedPasienId(e.target.value)}
-                          className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-violet-500"
+                          className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl pl-12 pr-4 py-4 text-sm font-black text-slate-700 focus:outline-none focus:border-blue-500/50 focus:ring-4 focus:ring-blue-500/5 transition-all appearance-none cursor-pointer"
                         >
-                          <option value="">-- Choose Patient --</option>
+                          <option value="">-- Pilih Data Pasien --</option>
                           {pasienList.map(p => (
-                            <option key={p.id} value={p.id}>{p.nama} ({p.no_rm})</option>
+                            <option key={p.id} value={p.id}>{p.nama.toUpperCase()} ({p.no_rm})</option>
                           ))}
                         </select>
                       </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Department / Poli</label>
+                    </div>
+                    <div className="space-y-3">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">2. Pilih Poli (Khusus Medis)</label>
+                      <div className="relative">
+                        <FiLayers className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                         <select
-                          value={poli}
-                          onChange={(e) => setPoli(e.target.value)}
-                          className="w-full bg-slate-50 border-none rounded-2xl p-4 text-xs font-bold text-slate-700 focus:ring-2 focus:ring-violet-500"
+                          value={currentPoli}
+                          onChange={(e) => setCurrentPoli(e.target.value)}
+                          className="w-full bg-slate-50 border-2 border-slate-50 rounded-2xl pl-12 pr-4 py-4 text-sm font-black text-slate-700 focus:outline-none focus:border-violet-500/50 focus:ring-4 focus:ring-violet-500/5 transition-all appearance-none cursor-pointer"
                         >
                           {MASTER_POLI.map(p => (
-                            <option key={p} value={p}>{p}</option>
+                            <option key={p} value={p}>{p.toUpperCase()}</option>
                           ))}
                         </select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-50 pb-2 flex justify-between items-center">
-                        <span>Master Data Selection</span>
-                        <span className="text-[9px] text-indigo-500 font-bold uppercase tracking-widest bg-indigo-50 px-2 py-0.5 rounded">Filtered by {poli}</span>
-                      </h3>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="space-y-3">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center bg-slate-50 py-1 rounded">Medical Services</p>
-                          <div className="space-y-2 max-h-75 overflow-y-auto scrollbar-hide pr-1">
-                            {MASTER_LAYANAN_MEDIS
-                              .filter(item => !item.poli || item.poli === poli || item.poli === "Umum")
-                              .map(item => (
-                                <button key={item.id_layanan_medis} onClick={() => addItem(item, "medis")} className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-violet-50 transition text-[10px] font-bold text-slate-600 line-clamp-1 border border-transparent hover:border-violet-100">
-                                  {item.nama_layanan}
-                                </button>
-                              ))}
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center bg-slate-50 py-1 rounded">Lab Tests</p>
-                          <div className="space-y-2 max-h-75 overflow-y-auto scrollbar-hide pr-1">
-                            {MASTER_LAYANAN_LABOR
-                              .filter(item => !item.poli || item.poli === poli || item.poli === "Umum")
-                              .map(item => (
-                                <button key={item.id_layanan_labor} onClick={() => addItem(item, "laboratorium")} className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-violet-50 transition text-[10px] font-bold text-slate-600 line-clamp-1 border border-transparent hover:border-violet-100">
-                                  {item.nama_layanan}
-                                </button>
-                              ))}
-                          </div>
-                        </div>
-                        <div className="space-y-3">
-                          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center bg-slate-50 py-1 rounded">Pharmacy / Drugs</p>
-                          <div className="space-y-2 max-h-75 overflow-y-auto scrollbar-hide pr-1">
-                            {MASTER_OBAT
-                              .filter(item => !item.poli || item.poli === poli || item.poli === "Umum")
-                              .map(item => (
-                                <button key={item.id_obat} onClick={() => addItem(item, "obat")} className="w-full text-left p-3 rounded-xl bg-slate-50 hover:bg-violet-50 transition text-[10px] font-bold text-slate-600 line-clamp-1 border border-transparent hover:border-violet-100">
-                                  {item.nama_obat}
-                                </button>
-                              ))}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-100">
-                      <div className="flex items-center justify-between mb-4">
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Selected Items ({cart.length})</p>
-                        <button onClick={() => setCart([])} className="text-[9px] font-black text-rose-500 uppercase tracking-widest">Clear All</button>
-                      </div>
-                      <div className="space-y-2 max-h-50 overflow-y-auto mb-6 pr-2">
-                        {cart.map(item => (
-                          <div key={item.id} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                            <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-black text-slate-700 line-clamp-1 uppercase tracking-tight">{item.nama}</p>
-                              <p className="text-[9px] text-slate-400 font-bold">Qty: {item.qty} • Rp {item.harga.toLocaleString()}</p>
-                            </div>
-                            <div className="flex items-center gap-2 ml-4">
-                              <button onClick={() => updateQty(item.id, -1)} className="w-6 h-6 bg-slate-100 rounded flex items-center justify-center text-xs font-black text-slate-500">-</button>
-                              <button onClick={() => updateQty(item.id, 1)} className="w-6 h-6 bg-slate-100 rounded flex items-center justify-center text-xs font-black text-slate-500">+</button>
-                              <button onClick={() => removeItem(item.id)} className="w-6 h-6 text-rose-400 hover:text-rose-600 transition ml-1"><FiTrash2 size={12} /></button>
-                            </div>
-                          </div>
-                        ))}
-                        {cart.length === 0 && <p className="text-[10px] text-slate-300 font-bold uppercase text-center py-4 tracking-widest italic">No items selected</p>}
-                      </div>
-
-                      <div className="pt-4 border-t border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-6">
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated Patient Billing</p>
-                          <div className="flex items-baseline gap-2">
-                            <p className="text-2xl font-black text-indigo-600 tracking-tighter">Rp {totalIur.toLocaleString()}</p>
-                            {selectedPasien?.tipe_penjamin === 'bpjs' && (
-                              <p className="text-[10px] font-bold text-emerald-500 uppercase tracking-widest">BPJS Coverage Active</p>
-                            )}
-                          </div>
-                        </div>
-                        <button
-                          onClick={handleCreateCustomInvoice}
-                          disabled={loading || cart.length === 0 || !selectedPasienId}
-                          className="flex items-center justify-center gap-3 bg-slate-900 text-white px-10 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-violet-600 transition shadow-xl shadow-slate-900/10 disabled:opacity-30"
-                        >
-                          <FiSave size={16} /> Generate Invoice
-                        </button>
                       </div>
                     </div>
                   </div>
-                )}
+
+                  {/* Step 2: Item Selection Grid */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                      <h3 className="text-xs font-black text-slate-800 uppercase tracking-[0.2em]">Pilih Layanan & Obat</h3>
+                      <div className="flex gap-2">
+                        <span className="text-[8px] font-black px-2 py-1 bg-violet-50 text-violet-600 rounded-lg uppercase">Medis Filtered by {currentPoli}</span>
+                        <span className="text-[8px] font-black px-2 py-1 bg-emerald-50 text-emerald-600 rounded-lg uppercase">Lab & Obat All-Access</span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {/* Medis Section */}
+                      <div className="space-y-4">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                           <div className="w-1.5 h-1.5 rounded-full bg-violet-500" /> Tindakan Medis
+                        </p>
+                        <div className="space-y-2 max-h-80 overflow-y-auto scrollbar-hide pr-1">
+                          {MASTER_LAYANAN_MEDIS
+                            .filter(item => !item.poli || item.poli === currentPoli || item.poli === "Umum")
+                            .map(item => (
+                              <button key={item.id_layanan_medis} onClick={() => addItem(item, "medis")} className="w-full group text-left p-4 rounded-2xl bg-slate-50 hover:bg-violet-600 transition-all border border-transparent hover:shadow-lg hover:shadow-violet-600/20 active:scale-95">
+                                <p className="text-[10px] font-black text-slate-700 group-hover:text-white uppercase leading-tight">{item.nama_layanan}</p>
+                                <p className="text-[9px] text-slate-400 group-hover:text-violet-200 font-bold mt-1">Rp {item.harga.toLocaleString()}</p>
+                              </button>
+                            ))}
+                        </div>
+                      </div>
+
+                      {/* Lab Section */}
+                      <div className="space-y-4">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Layanan Laboratorium
+                        </p>
+                        <div className="space-y-2 max-h-80 overflow-y-auto scrollbar-hide pr-1">
+                          {MASTER_LAYANAN_LABOR.map(item => (
+                            <button key={item.id_layanan_labor} onClick={() => addItem(item, "laboratorium")} className="w-full group text-left p-4 rounded-2xl bg-slate-50 hover:bg-emerald-600 transition-all border border-transparent hover:shadow-lg hover:shadow-emerald-600/20 active:scale-95">
+                              <p className="text-[10px] font-black text-slate-700 group-hover:text-white uppercase leading-tight">{item.nama_layanan}</p>
+                              <p className="text-[9px] text-slate-400 group-hover:text-emerald-200 font-bold mt-1">Rp {item.harga.toLocaleString()}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Obat Section */}
+                      <div className="space-y-4">
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                           <div className="w-1.5 h-1.5 rounded-full bg-blue-500" /> Instalasi Farmasi
+                        </p>
+                        <div className="space-y-2 max-h-80 overflow-y-auto scrollbar-hide pr-1">
+                          {MASTER_OBAT.map(item => (
+                            <button key={item.id_obat} onClick={() => addItem(item, "obat")} className="w-full group text-left p-4 rounded-2xl bg-slate-50 hover:bg-blue-600 transition-all border border-transparent hover:shadow-lg hover:shadow-blue-600/20 active:scale-95">
+                              <p className="text-[10px] font-black text-slate-700 group-hover:text-white uppercase leading-tight">{item.nama_obat}</p>
+                              <p className="text-[9px] text-slate-400 group-hover:text-blue-200 font-bold mt-1">Rp {item.harga.toLocaleString()}</p>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 3: Cart and Summary */}
+                <div className="p-8 bg-slate-50/50 border-t border-slate-100">
+                   <div className="flex flex-col xl:flex-row gap-8">
+                      <div className="flex-1 space-y-4">
+                         <div className="flex items-center justify-between">
+                            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Rincian Invoice ({cart.length} Item)</h3>
+                            <button onClick={() => setCart([])} className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:underline transition-all">Kosongkan Keranjang</button>
+                         </div>
+                         <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                            {cart.map(item => (
+                              <div key={item.uniqueId} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm animate-in slide-in-from-right-4 duration-300">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                     <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${item.jenis === 'medis' ? 'bg-violet-100 text-violet-600' : item.jenis === 'laboratorium' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'}`}>
+                                        {item.jenis}
+                                     </span>
+                                     <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest italic">{item.poli}</span>
+                                  </div>
+                                  <p className="text-[11px] font-black text-slate-800 uppercase tracking-tight mt-1">{item.nama}</p>
+                                  <p className="text-[10px] text-slate-500 font-bold mt-0.5">Rp {item.harga.toLocaleString()} x {item.qty}</p>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <div className="flex bg-slate-100 rounded-xl overflow-hidden shadow-inner">
+                                     <button onClick={() => updateQty(item.uniqueId, -1)} className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">-</button>
+                                     <div className="w-8 h-8 flex items-center justify-center text-[10px] font-black text-slate-800 bg-white">{item.qty}</div>
+                                     <button onClick={() => updateQty(item.uniqueId, 1)} className="w-8 h-8 flex items-center justify-center text-slate-600 hover:bg-slate-200 transition">+</button>
+                                  </div>
+                                  <button onClick={() => removeItem(item.uniqueId)} className="w-10 h-10 bg-rose-50 text-rose-500 rounded-xl hover:bg-rose-500 hover:text-white transition flex items-center justify-center shadow-sm">
+                                     <FiTrash2 size={16} />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                            {cart.length === 0 && (
+                              <div className="py-12 flex flex-col items-center justify-center bg-white rounded-3xl border border-dashed border-slate-200">
+                                 <FiPackage size={40} className="text-slate-100 mb-2" />
+                                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest italic">Belum ada item terpilih</p>
+                              </div>
+                            )}
+                         </div>
+                      </div>
+
+                      <div className="w-full xl:w-96 bg-white rounded-3xl p-8 shadow-xl shadow-slate-200/50 border border-slate-100 flex flex-col">
+                         <h4 className="text-[11px] font-black text-slate-800 uppercase tracking-widest mb-6 border-b border-slate-50 pb-4">Ringkasan Tagihan</h4>
+                         
+                         <div className="space-y-4 flex-1">
+                            <div className="flex justify-between items-center text-xs font-bold text-slate-500">
+                               <span>Subtotal</span>
+                               <span>Rp {totalCart.toLocaleString()}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs font-bold text-emerald-500 bg-emerald-50 p-2 rounded-xl border border-emerald-100">
+                               <span>Cover BPJS</span>
+                               <span>- Rp {totalCover.toLocaleString()}</span>
+                            </div>
+                            <div className="h-px bg-slate-100 my-4" />
+                            <div className="flex justify-between items-end">
+                               <div>
+                                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Iur Biaya Pasien</p>
+                                  <p className="text-2xl font-black text-slate-900 tracking-tighter">Rp {totalIur.toLocaleString()}</p>
+                               </div>
+                            </div>
+                         </div>
+
+                         <button
+                           onClick={handleCreateCustomInvoice}
+                           disabled={loading || cart.length === 0 || !selectedPasienId}
+                           className="w-full mt-8 bg-slate-900 text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-slate-900/20 hover:bg-blue-600 transition-all flex items-center justify-center gap-3 active:scale-95 disabled:opacity-30 disabled:grayscale"
+                         >
+                           {loading ? <FiLoader className="animate-spin" /> : <FiSave size={18} />}
+                           {loading ? "MEMPROSES..." : "BUAT INVOICE"}
+                         </button>
+                      </div>
+                   </div>
+                </div>
               </div>
             </div>
           </div>
@@ -346,4 +400,20 @@ export default function SeedPage() {
       </div>
     </RoleGuard>
   );
+}
+
+function FiLoader(props: any) {
+  return (
+    <svg 
+      className={props.className} 
+      xmlns="http://www.w3.org/2000/svg" 
+      fill="none" 
+      viewBox="0 0 24 24" 
+      width="1em" 
+      height="1em"
+    >
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  )
 }

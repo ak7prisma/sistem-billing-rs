@@ -110,11 +110,6 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, tagihan })
           </tbody>
         </table>
 
-        {!loading && totalBpjs > 0 && (
-          <div className="text-[10px] text-emerald-600 font-bold mb-4 border border-dashed border-emerald-200 rounded px-3 py-2 bg-emerald-50">
-            *Biaya BPJS {formatRupiah(totalBpjs)} telah ditanggung.
-          </div>
-        )}
 
         <div className="border-t-2 border-dashed border-slate-300 pt-4 mb-8 flex justify-between items-center">
           <span className="font-bold text-xs uppercase">Total Bayar</span>
