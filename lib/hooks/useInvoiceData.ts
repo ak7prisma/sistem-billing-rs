@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Tagihan, RincianTagihan, Pasien } from "@/lib/types";
-import { getRinciTagihanByTagihan, getData } from "@/lib/firebase/firestore";
+import { Tagihan, RincianTagihan, Pasien, Pembayaran } from "@/lib/types";
+import { getRinciTagihanByTagihan, getData, getPembayaranByTagihan } from "@/lib/firebase/firestore";
 
 export const useInvoiceData = (tagihan: Tagihan | null, isOpen: boolean) => {
   const [loading, setLoading] = useState(false);
   const [rincian, setRincian] = useState<RincianTagihan[]>([]);
   const [pasien, setPasien] = useState<Pasien | null>(null);
+  const [pembayaran, setPembayaran] = useState<Pembayaran | null>(null);
 
   useEffect(() => {
     if (!isOpen || !tagihan) return;
@@ -13,8 +14,13 @@ export const useInvoiceData = (tagihan: Tagihan | null, isOpen: boolean) => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const pData = await getData("pasien", tagihan.pasien_id) as Pasien;
+        const [pData, payData] = await Promise.all([
+          getData("pasien", tagihan.pasien_id) as Promise<Pasien>,
+          getPembayaranByTagihan(tagihan.id_tagihan)
+        ]);
+        
         setPasien(pData);
+        setPembayaran(payData);
 
         if (tagihan.rincian && tagihan.rincian.length > 0) {
           setRincian(tagihan.rincian);
@@ -32,5 +38,5 @@ export const useInvoiceData = (tagihan: Tagihan | null, isOpen: boolean) => {
     fetchData();
   }, [isOpen, tagihan]);
 
-  return { rincian, pasien, loading };
+  return { rincian, pasien, pembayaran, loading };
 };

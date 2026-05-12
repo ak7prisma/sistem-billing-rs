@@ -1,26 +1,19 @@
 import { doc, getDoc, writeBatch, serverTimestamp, collection, updateDoc } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { Tagihan, Pembayaran, RincianTagihan, RincianPembayaran } from "../types";
+import { createLog } from "../firebase/firestore";
 
-/**
- * prosesPembayaran
- *
- * Menerima rincian yang sudah di-fetch dari InvoiceModal (bisa dari embedded atau
- * koleksi rinci_tagihan). Mengambil data pasien untuk menentukan tipe penjamin
- * sehingga perhitungan cover_bpjs dan iur_biaya akurat.
- */
 export const prosesPembayaran = async (
   tagihan: Tagihan,
   metode: "tunai" | "qris" | "transfer",
-  rincian: RincianTagihan[]
+  rincian: RincianTagihan[],
+  kasir?: { uid: string; nama: string }
 ) => {
   const idPembayaran = `PAY-${Date.now()}`;
 
-  // Ambil tipe penjamin dari data pasien
   const pasienSnap = await getDoc(doc(db, "pasien", tagihan.pasien_id));
   const isBpjs = pasienSnap.exists() && pasienSnap.data().tipe_penjamin === "bpjs";
 
-  // Hitung cover BPJS dan iur biaya
   let totalCoverBpjs = 0;
   let totalIurBiaya = 0;
 
@@ -32,11 +25,10 @@ export const prosesPembayaran = async (
     }
   });
 
-  const jumlahPembayaran = totalIurBiaya; // Yang dibayar pasien
+  const jumlahPembayaran = totalIurBiaya;
 
   const batch = writeBatch(db);
 
-  // Simpan pembayaran
   const newPembayaran: Pembayaran = {
     id_pembayaran: idPembayaran,
     tagihan_id: tagihan.id_tagihan,
@@ -45,7 +37,9 @@ export const prosesPembayaran = async (
     jumlah_pembayaran: jumlahPembayaran,
     cover_bpjs: totalCoverBpjs,
     iur_biaya: totalIurBiaya,
-    status: "berhasil"
+    status: "berhasil",
+    id_kasir: kasir?.uid,
+    nama_kasir: kasir?.nama
   };
 
   batch.set(doc(db, "pembayaran", idPembayaran), {
@@ -53,7 +47,6 @@ export const prosesPembayaran = async (
     createdAt: serverTimestamp()
   });
 
-  // Simpan rincian_pembayaran
   (rincian ?? []).forEach((item, index) => {
     const idRincianPay = `${idPembayaran}-R-${index}`;
     const rincianData: RincianPembayaran = {
@@ -66,13 +59,22 @@ export const prosesPembayaran = async (
     batch.set(doc(db, "rincian_pembayaran", idRincianPay), rincianData);
   });
 
-  // Update tagihan: status lunas + simpan total yang benar
   batch.update(doc(db, "tagihan", tagihan.id_tagihan), {
     status: "lunas",
     total_biaya: jumlahPembayaran,
     cover_bpjs: totalCoverBpjs,
     updatedAt: serverTimestamp()
   });
+
+  if (kasir) {
+    await createLog({
+      userId: kasir.uid,
+      userName: kasir.nama,
+      userRole: "kasir",
+      action: "Proses Pembayaran",
+      details: `Memproses pembayaran ${metode.toUpperCase()} untuk Tagihan #${tagihan.id_tagihan} senilai ${jumlahPembayaran}`
+    });
+  }
 
   await batch.commit();
   return newPembayaran;

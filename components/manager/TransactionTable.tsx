@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FiEye, FiSearch, FiLoader, FiShield } from "react-icons/fi";
+import { FiEye, FiSearch, FiLoader, FiShield, FiCheckCircle, FiClock } from "react-icons/fi";
 import { Tagihan, Pembayaran } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils/currency";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -49,6 +49,8 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
       date = new Date(tanggal.seconds * 1000);
     } else if (tanggal instanceof Date) {
       date = tanggal;
+    } else if (typeof tanggal === "string") {
+      date = new Date(tanggal);
     } else {
       date = new Date(tanggal);
     }
@@ -62,7 +64,8 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
           <tr>
             <th className="p-6 pl-10">Invoice ID</th>
             <th className="p-6">Poli / Layanan</th>
-            <th className="p-6">Tanggal</th>
+            <th className="p-6">Tgl Buat</th>
+            <th className="p-6">Tgl Konfirmasi</th>
             <th className="p-6 text-right text-emerald-600">
               {filterJenis ? `BPJS ${filterJenis}` : "Cover BPJS"}
             </th>
@@ -76,6 +79,7 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
         <tbody className="text-sm divide-y divide-slate-50">
           {data.map((item) => {
             const pembayaran = pembayaranMap[item.id_tagihan];
+            const isLunas = item.status === "lunas";
             
             let totalBpjs = 0;
             let totalIur = 0;
@@ -114,7 +118,22 @@ const TransactionTable: React.FC<TransactionTableProps> = ({
                   </div>
                 </td>
                 <td className="p-6 text-slate-400 font-bold text-[11px] uppercase tracking-wider">
-                  {parseDate(item.tanggal)}
+                   <div className="flex items-center gap-1.5">
+                     <FiClock className="text-slate-300" />
+                     {parseDate(item.tanggal)}
+                   </div>
+                </td>
+                <td className="p-6">
+                   {isLunas ? (
+                     <div className="flex items-center gap-1.5 text-emerald-600 font-bold text-[11px] uppercase tracking-wider bg-emerald-50 px-2 py-1 rounded-lg w-fit border border-emerald-100/50">
+                       <FiCheckCircle size={12} />
+                       {pembayaran?.tanggal_pembayaran 
+                         ? parseDate(pembayaran.tanggal_pembayaran)
+                         : parseDate(item.updatedAt)}
+                     </div>
+                   ) : (
+                     <span className="text-slate-300 text-[10px] font-black uppercase tracking-widest">— Belum Konfirmasi —</span>
+                   )}
                 </td>
                 <td className="p-6 text-right font-bold text-emerald-600 font-mono text-xs">
                   {totalBpjs > 0 ? formatRupiah(totalBpjs) : <span className="text-slate-300">—</span>}

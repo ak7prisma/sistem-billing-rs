@@ -11,11 +11,41 @@ import {
   where, 
   orderBy, 
   serverTimestamp,
-  Timestamp,
+  limit,
   writeBatch
 } from "firebase/firestore";
 import { db } from "./config";
-import { Tagihan, Pasien, Pembayaran, RincianTagihan } from "../types";
+import { Tagihan, Pasien, Pembayaran, RincianTagihan, User, UserRole } from "../types";
+
+export interface SystemLog {
+  id?: string;
+  userId: string;
+  userName: string;
+  userRole: string;
+  action: string;
+  details: string;
+  timestamp: any;
+}
+
+export const createLog = async (log: Omit<SystemLog, "timestamp">) => {
+  try {
+    return await addDoc(collection(db, "logs"), {
+      ...log,
+      timestamp: serverTimestamp()
+    });
+  } catch (err) {
+    console.error("Failed to create log:", err);
+  }
+};
+
+export const getSystemLogs = async (limitCount: number = 50): Promise<SystemLog[]> => {
+  const q = query(collection(db, "logs"), orderBy("timestamp", "desc"), limit(limitCount));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ 
+    id: doc.id, 
+    ...doc.data() 
+  } as SystemLog));
+};
 
 export const addData = async (collectionName: string, data: any) => {
   return await addDoc(collection(db, collectionName), {
@@ -47,6 +77,33 @@ export const getAllData = async (collectionName: string) => {
   }));
 };
 
+export const getAllUsers = async (): Promise<User[]> => {
+  const q = query(collection(db, "users"), orderBy("nama", "asc"));
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ 
+    uid: doc.id, 
+    ...doc.data() 
+  } as User));
+};
+
+export const updateUserRole = async (uid: string, role: UserRole, adminInfo?: { uid: string; nama: string }) => {
+  const userRef = doc(db, "users", uid);
+  await updateDoc(userRef, { 
+    role, 
+    updatedAt: serverTimestamp() 
+  });
+
+  if (adminInfo) {
+    await createLog({
+      userId: adminInfo.uid,
+      userName: adminInfo.nama,
+      userRole: "admin",
+      action: "Ubah Role User",
+      details: `Mengubah role user ID ${uid} menjadi ${role}`
+    });
+  }
+};
+
 export const createTagihan = async (tagihan: Omit<Tagihan, "id_tagihan">) => {
   return await addDoc(collection(db, "tagihan"), {
     ...tagihan,
@@ -66,7 +123,6 @@ export const getTagihanByPasien = async (pasienId: string) => {
     ...doc.data() 
   } as Tagihan));
 
-  // Sort manual di client (untuk menghindari requirement index Firestore)
   return data.sort((a, b) => {
     const dateA = a.createdAt?.seconds || new Date(a.tanggal).getTime();
     const dateB = b.createdAt?.seconds || new Date(b.tanggal).getTime();
@@ -130,6 +186,7 @@ export const getPembayaranByTagihan = async (tagihanId: string) => {
   const doc = querySnapshot.docs[0];
   return { id_pembayaran: doc.id, ...doc.data() } as Pembayaran;
 };
+
 export const getAllPembayaran = async () => {
   const q = query(collection(db, "pembayaran"), orderBy("tanggal_pembayaran", "desc"));
   const querySnapshot = await getDocs(q);

@@ -21,7 +21,8 @@ export default function RoleGuard({ children, allowedRoles }: Readonly<RoleGuard
         router.push("/auth/login");
       } else if (role && !allowedRoles.includes(role)) {
         // Role not authorized for this section
-        if (role === "kasir") router.push("/kasir");
+        if (role === "admin") router.push("/admin");
+        else if (role === "kasir") router.push("/kasir");
         else if (role === "manajer") router.push("/manager");
         else router.push("/pasien");
       }

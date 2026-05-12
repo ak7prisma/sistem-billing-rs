@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { FiX, FiLoader, FiShield, FiDollarSign } from "react-icons/fi";
+import { FiX, FiLoader, FiShield, FiDollarSign, FiCheckCircle, FiUser, FiClock } from "react-icons/fi";
 import { Tagihan } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils/currency";
 import BaseModal from "@/components/ui/BaseModal";
@@ -27,11 +27,12 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   tagihan,
   filterJenis 
 }) => {
-  const { rincian, pasien, loading } = useInvoiceData(tagihan, isOpen);
+  const { rincian, pasien, pembayaran, loading } = useInvoiceData(tagihan, isOpen);
 
   if (!isOpen || !tagihan) return null;
 
-  // Filter rincian jika sedang berada di page spesifik (Obat/Medis/Labor)
+  const isLunas = tagihan.status === "lunas";
+
   const effectiveRincian = filterJenis 
     ? rincian.filter(r => r.jenis === filterJenis)
     : rincian;
@@ -53,16 +54,17 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       date = new Date(tanggal.seconds * 1000);
     } else if (tanggal instanceof Date) {
       date = tanggal;
+    } else if (typeof tanggal === "string") {
+      date = new Date(tanggal);
     } else {
       date = new Date(tanggal);
     }
-    return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+    return date.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
   };
 
   return (
     <BaseModal isOpen={isOpen} onClose={onClose} maxWidth="max-w-2xl">
-      {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-slate-100">
+      <div className="flex items-center justify-between p-6 border-b border-slate-100 bg-slate-50/30">
         <div>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
             {filterJenis ? `Audit Detail ${JENIS_LABEL[filterJenis]}` : "Detail Transaksi Lengkap"}
@@ -83,23 +85,46 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       </div>
 
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
-        {/* Pasien Info */}
-        <div className="grid grid-cols-2 gap-4">
+        {isLunas && !loading && (
+          <div className="bg-emerald-50 border border-emerald-100 rounded-3xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+             <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-emerald-500/20">
+                   <FiCheckCircle size={24} />
+                </div>
+                <div>
+                   <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Transaksi Dikonfirmasi</p>
+                   <p className="text-sm font-black text-emerald-800 uppercase tracking-tight">
+                     {pembayaran?.tanggal_pembayaran ? parseDate(pembayaran.tanggal_pembayaran) : parseDate(tagihan.updatedAt)}
+                   </p>
+                </div>
+             </div>
+             <div className="flex items-center gap-3 pl-4 md:border-l border-emerald-100">
+                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-emerald-500 shadow-sm">
+                   <FiUser size={14} />
+                </div>
+                <div>
+                   <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Dilayani Oleh</p>
+                   <p className="text-[11px] font-black text-emerald-700 uppercase">{pembayaran?.nama_kasir || "Sistem"}</p>
+                </div>
+             </div>
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="bg-slate-50 rounded-2xl p-4 space-y-1 border border-slate-100 shadow-sm">
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Pasien</p>
             <p className="font-black text-slate-800 text-sm leading-tight">{loading ? "..." : (pasien?.nama || "—")}</p>
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">{pasien?.tipe_penjamin || "—"}</p>
           </div>
           <div className="bg-slate-50 rounded-2xl p-4 space-y-1 border border-slate-100 shadow-sm">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Poli / Tanggal</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Poli / Tanggal Buat</p>
             <p className="font-black text-slate-800 text-sm leading-tight">{tagihan.poli || "Umum"}</p>
-            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide">
-              {parseDate(tagihan.tanggal)}
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wide flex items-center gap-1">
+              <FiClock size={10} /> {parseDate(tagihan.tanggal)}
             </p>
           </div>
         </div>
 
-        {/* BPJS Summary Banner (Hanya untuk Jenis yang dipilih) */}
         <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
             <div className="bg-emerald-500 p-2 rounded-xl text-white shadow-md shadow-emerald-500/20 shrink-0">
@@ -121,7 +146,6 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           </div>
         </div>
 
-        {/* Rincian per jenis */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-12 gap-3">
             <FiLoader className="w-8 h-8 text-violet-500 animate-spin" />
@@ -197,7 +221,6 @@ const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         )}
       </div>
 
-      {/* Footer total */}
       <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex items-center justify-between">
         <div>
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">

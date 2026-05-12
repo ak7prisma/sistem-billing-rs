@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Tagihan, RincianTagihan, Pasien } from "@/lib/types";
 import { prosesPembayaran } from "@/lib/service/payment";
+import { useAuth } from "./useAuth";
 
 export const useInvoiceActions = (
   tagihan: Tagihan | null, 
@@ -10,16 +11,25 @@ export const useInvoiceActions = (
   onClose?: () => void
 ) => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const { user, profile } = useAuth();
 
   const handlePayTunai = async () => {
     if (!tagihan) return;
     setIsProcessing(true);
     try {
-      await prosesPembayaran(tagihan, "tunai", rincian);
+      // Sertakan informasi kasir dari auth state
+      const kasirInfo = user && profile ? { 
+        uid: user.uid, 
+        nama: profile.nama || user.displayName || "Kasir" 
+      } : undefined;
+
+      await prosesPembayaran(tagihan, "tunai", rincian, kasirInfo);
+      
       alert("Pembayaran Tunai Berhasil Konfirmasi!");
       onSuccess?.();
       onClose?.();
     } catch (error) {
+      console.error(error);
       alert("Gagal memproses pembayaran.");
     } finally {
       setIsProcessing(false);
@@ -42,6 +52,7 @@ export const useInvoiceActions = (
           amount: iurBiaya,
           customerName: pasien.nama,
           customerEmail: pasien.email || `${pasien.nama.replace(/\s/g, "").toLowerCase()}@hospital.com`,
+          // Xendit might need cashier info if we want to track it there too
         }),
       });
 

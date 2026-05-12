@@ -1,4 +1,4 @@
-import { FiPieChart, FiFileText, FiUsers, FiGrid, FiClock, FiHome, FiInfo, FiShield, FiPackage, FiActivity, FiLayers } from "react-icons/fi";
+import { FiPieChart, FiFileText, FiUsers, FiGrid, FiClock, FiHome, FiInfo, FiShield, FiPackage, FiActivity, FiLayers, FiSettings, FiLock, FiUserPlus } from "react-icons/fi";
 
 export const navItems = [
     { label: "Overview", href: "/manager", icon: FiPieChart },
@@ -17,4 +17,10 @@ export const navItemsPasien = [
     { label: "Home", href: "/pasien", icon: FiHome },
     { label: "History", href: "/pasien/history", icon: FiClock },
     { label: "About", href: "/pasien/about", icon: FiInfo },
+];
+
+export const navItemsAdmin = [
+    { label: "Dashboard", href: "/admin", icon: FiSettings },
+    { label: "User Management", href: "/admin/users", icon: FiUsers },
+    { label: "Generate Akun", href: "/admin/users/create", icon: FiUserPlus },
 ];

@@ -3,34 +3,66 @@ import {
   GoogleAuthProvider,
   signOut,
   signInWithEmailAndPassword,
-  User as FirebaseUser
+  createUserWithEmailAndPassword,
+  User as FirebaseUser,
+  getAuth
 } from "firebase/auth";
-import { auth, db } from "./config";
+import { initializeApp } from "firebase/app";
+import { auth, db, firebaseConfig } from "./config";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { UserRole } from "../types";
 
 const googleProvider = new GoogleAuthProvider();
 
-export const syncUserWithFirestore = async (user: FirebaseUser) => {
+export const syncUserWithFirestore = async (user: FirebaseUser, customData: any = {}) => {
   const userRef = doc(db, "users", user.uid);
   const userSnap = await getDoc(userRef);
 
   if (!userSnap.exists()) {
+    const role = customData.role || "pasien";
     await setDoc(userRef, {
       uid: user.uid,
       email: user.email,
-      nama: user.displayName || user.email?.split("@")[0] || "User",
-      role: "pasien" as UserRole,
+      nama: customData.nama || user.displayName || user.email?.split("@")[0] || "User",
+      role: role as UserRole,
       createdAt: serverTimestamp(),
       lastLogin: serverTimestamp(),
+      ...customData
     });
-    return "pasien" as UserRole;
+    return role as UserRole;
   } else {
     const userData = userSnap.data();
     await setDoc(userRef, {
       lastLogin: serverTimestamp(),
     }, { merge: true });
     return userData.role as UserRole;
+  }
+};
+
+export const registerStaff = async (email: string, pass: string, nama: string, role: UserRole) => {
+  const secondaryApp = initializeApp(firebaseConfig, "secondary");
+  const secondaryAuth = getAuth(secondaryApp);
+
+  try {
+    const result = await createUserWithEmailAndPassword(secondaryAuth, email, pass);
+    const user = result.user;
+
+    const userRef = doc(db, "users", user.uid);
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email,
+      nama: nama,
+      role: role,
+      createdAt: serverTimestamp(),
+      lastLogin: serverTimestamp(),
+    });
+
+    await secondaryApp.delete();
+    return user;
+  } catch (error) {
+    console.error("Error registerStaff:", error);
+    await secondaryApp.delete();
+    throw error;
   }
 };
 

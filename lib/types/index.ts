@@ -1,4 +1,4 @@
-export type UserRole = "kasir" | "manajer" | "pasien" | "developer";
+export type UserRole = "kasir" | "manajer" | "pasien" | "developer" | "admin";
 export type TagihanStatus = "pending" | "lunas" | "gagal";
 
 export interface User {
@@ -80,6 +80,8 @@ export interface Pembayaran {
   iur_biaya: number;
   status: "berhasil" | "gagal";
   xendit_invoice_id?: string;
+  id_kasir?: string;
+  nama_kasir?: string;
 }
 
 export interface RincianPembayaran {
