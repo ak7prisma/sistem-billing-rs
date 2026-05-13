@@ -15,8 +15,10 @@ export const konsolidasiTagihan = async (pasienId: string, kunjunganId: string, 
       fetchExternalFarmasi(kunjunganId)
     ]);
 
+    const idTagihan = `INV-${new Date().getTime()}`;
     const rincianGabungan: RincianTagihan[] = [...medis, ...lab, ...farmasi].map(item => ({
       ...item,
+      id_tagihan: idTagihan,
       is_covered_bpjs: isBpjs ? item.is_covered_bpjs : false
     }));
 
@@ -25,7 +27,6 @@ export const konsolidasiTagihan = async (pasienId: string, kunjunganId: string, 
       return sum + itemIur;
     }, 0);
 
-    const idTagihan = `INV-${new Date().getTime()}`;
     const newTagihan: Tagihan = {
       id_tagihan: idTagihan,
       pasien_id: pasienId,

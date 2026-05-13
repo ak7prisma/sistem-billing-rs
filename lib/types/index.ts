@@ -48,7 +48,7 @@ export interface Pasien {
 
 export interface RincianTagihan {
   id_rincian: string;
-  id_tagihan: string;
+  id_tagihan?: string;
   id_layanan_labor?: string;
   id_layanan_medis?: string;
   id_obat?: string;
