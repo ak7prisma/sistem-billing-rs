@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { User, UserRole } from "@/lib/types";
-import { getAllUsers, updateUserRole } from "@/lib/firebase/firestore";
+import { getAllUsers, updateUserRole, deleteUser, updateUserInfo } from "@/lib/firebase/firestore";
 import { useAuth } from "./useAuth";
 
 export function useUserManagement() {
@@ -41,10 +41,44 @@ export function useUserManagement() {
     }
   };
 
+  const updateInfo = async (uid: string, data: { nama?: string; email?: string; role?: UserRole }) => {
+    try {
+      const adminInfo = currentUser && profile ? {
+        uid: currentUser.uid,
+        nama: profile.nama || currentUser.displayName || "Admin"
+      } : undefined;
+
+      await updateUserInfo(uid, data, adminInfo);
+      await fetchUsers(); // Refresh data
+      return { success: true };
+    } catch (err) {
+      console.error("Error updating info:", err);
+      return { success: false, error: "Gagal memperbarui data" };
+    }
+  };
+
+  const deleteAccount = async (uid: string) => {
+    try {
+      const adminInfo = currentUser && profile ? {
+        uid: currentUser.uid,
+        nama: profile.nama || currentUser.displayName || "Admin"
+      } : undefined;
+
+      await deleteUser(uid, adminInfo);
+      await fetchUsers(); // Refresh data
+      return { success: true };
+    } catch (err) {
+      console.error("Error deleting account:", err);
+      return { success: false, error: "Gagal menghapus akun" };
+    }
+  };
+
   const filteredUsers = users.filter(u => 
-    u.nama.toLowerCase().includes(search.toLowerCase()) || 
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    u.role.toLowerCase().includes(search.toLowerCase())
+    u.role !== "pasien" && (
+      u.nama.toLowerCase().includes(search.toLowerCase()) || 
+      u.email.toLowerCase().includes(search.toLowerCase()) ||
+      u.role.toLowerCase().includes(search.toLowerCase())
+    )
   );
 
   return {
@@ -54,6 +88,8 @@ export function useUserManagement() {
     search,
     setSearch,
     updateRole,
+    updateInfo,
+    deleteAccount,
     refreshUsers: fetchUsers
   };
 }

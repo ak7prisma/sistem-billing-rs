@@ -104,6 +104,39 @@ export const updateUserRole = async (uid: string, role: UserRole, adminInfo?: { 
   }
 };
 
+export const deleteUser = async (uid: string, adminInfo?: { uid: string; nama: string }) => {
+  const userRef = doc(db, "users", uid);
+  await deleteDoc(userRef);
+
+  if (adminInfo) {
+    await createLog({
+      userId: adminInfo.uid,
+      userName: adminInfo.nama,
+      userRole: "admin",
+      action: "Hapus Akun Staff",
+      details: `Menghapus akun user ID ${uid}`
+    });
+  }
+};
+
+export const updateUserInfo = async (uid: string, data: { nama?: string; email?: string; role?: UserRole }, adminInfo?: { uid: string; nama: string }) => {
+  const userRef = doc(db, "users", uid);
+  await updateDoc(userRef, { 
+    ...data, 
+    updatedAt: serverTimestamp() 
+  });
+
+  if (adminInfo) {
+    await createLog({
+      userId: adminInfo.uid,
+      userName: adminInfo.nama,
+      userRole: "admin",
+      action: "Update Info Staff",
+      details: `Memperbarui info user ID ${uid}: ${JSON.stringify(data)}`
+    });
+  }
+};
+
 export const createTagihan = async (tagihan: Omit<Tagihan, "id_tagihan">) => {
   return await addDoc(collection(db, "tagihan"), {
     ...tagihan,

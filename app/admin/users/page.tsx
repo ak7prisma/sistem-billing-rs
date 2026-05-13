@@ -2,28 +2,39 @@
 
 import React, { useState } from "react";
 import PageHeader from "@/components/ui/PageHeader";
-import { FiSearch, FiEdit2, FiCheck, FiX, FiLoader } from "react-icons/fi";
-import { UserRole } from "@/lib/types";
+import { FiSearch, FiEdit2, FiLoader, FiTrash2 } from "react-icons/fi";
+import { User, UserRole } from "@/lib/types";
 import { useUserManagement } from "@/lib/hooks/useUserManagement";
 import RoleBadge from "@/components/ui/RoleBadge";
-
-const ROLES: UserRole[] = ["kasir", "manajer", "admin", "pasien"];
+import EditUserModal from "@/components/admin/EditUserModal";
 
 export default function UserManagementPage() {
-  const { users, loading, search, setSearch, updateRole } = useUserManagement();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [newRole, setNewRole] = useState<UserRole>("pasien");
-  const [isUpdating, setIsUpdating] = useState(false);
+  const { users, loading, search, setSearch, updateInfo, deleteAccount } = useUserManagement();
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
-  const handleUpdateRole = async (uid: string) => {
-    setIsUpdating(true);
-    const result = await updateRole(uid, newRole);
-    if (result.success) {
-      setEditingId(null);
-    } else {
+  const handleEditClick = (user: User) => {
+    setSelectedUser(user);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveUser = async (uid: string, data: { nama: string, email: string, role: UserRole }) => {
+    const result = await updateInfo(uid, data);
+    if (!result.success) {
       alert(result.error);
     }
-    setIsUpdating(false);
+  };
+
+  const handleDeleteAccount = async (uid: string, nama: string) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus akun ${nama}? Tindakan ini tidak dapat dibatalkan.`)) {
+      setIsDeleting(uid);
+      const result = await deleteAccount(uid);
+      if (!result.success) {
+        alert(result.error);
+      }
+      setIsDeleting(null);
+    }
   };
 
   return (
@@ -80,17 +91,7 @@ export default function UserManagementPage() {
                     </div>
                   </td>
                   <td className="p-6">
-                    {editingId === user.uid ? (
-                      <select 
-                        value={newRole}
-                        onChange={(e) => setNewRole(e.target.value as UserRole)}
-                        className="bg-white border border-slate-200 rounded-xl px-3 py-1.5 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-                      >
-                        {ROLES.map(r => <option key={r} value={r}>{r.toUpperCase()}</option>)}
-                      </select>
-                    ) : (
-                      <RoleBadge role={user.role} />
-                    )}
+                    <RoleBadge role={user.role} />
                   </td>
                   <td className="p-6">
                     <span className="text-[11px] text-slate-400 font-bold uppercase tracking-wider">
@@ -100,34 +101,22 @@ export default function UserManagementPage() {
                     </span>
                   </td>
                   <td className="p-6 pr-10 text-right">
-                    {editingId === user.uid ? (
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          disabled={isUpdating}
-                          onClick={() => handleUpdateRole(user.uid)}
-                          className="p-2.5 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition active:scale-95 disabled:opacity-50"
-                        >
-                          {isUpdating ? <FiLoader className="animate-spin" /> : <FiCheck size={16} />}
-                        </button>
-                        <button 
-                          disabled={isUpdating}
-                          onClick={() => setEditingId(null)}
-                          className="p-2.5 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition active:scale-95 disabled:opacity-50"
-                        >
-                          <FiX size={16} />
-                        </button>
-                      </div>
-                    ) : (
+                    <div className="flex items-center justify-end gap-3">
                       <button 
-                        onClick={() => {
-                          setEditingId(user.uid);
-                          setNewRole(user.role);
-                        }}
+                        onClick={() => handleEditClick(user)}
                         className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest shadow-sm active:scale-95"
                       >
-                        <FiEdit2 size={12} /> Edit Role
+                        <FiEdit2 size={12} /> Edit Akun
                       </button>
-                    )}
+                      <button 
+                        disabled={isDeleting === user.uid}
+                        onClick={() => handleDeleteAccount(user.uid, user.nama)}
+                        className="p-2.5 bg-slate-100 text-slate-400 hover:bg-rose-500 hover:text-white rounded-xl transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                        title="Hapus Akun"
+                      >
+                        {isDeleting === user.uid ? <FiLoader className="animate-spin" /> : <FiTrash2 size={14} />}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -135,6 +124,13 @@ export default function UserManagementPage() {
           </table>
         </div>
       </div>
+
+      <EditUserModal 
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        user={selectedUser}
+        onSave={handleSaveUser}
+      />
     </div>
   );
 }

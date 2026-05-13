@@ -8,8 +8,11 @@ import { Pasien } from "@/lib/types";
 import { db } from "@/lib/firebase/config";
 import { doc, writeBatch, serverTimestamp } from "firebase/firestore";
 import RoleGuard from "@/components/layout/RoleGuard";
+import { logout } from "@/lib/firebase/auth";
+import { useRouter } from "next/navigation";
 
 export default function SeedPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<string[]>([]);
   const [showInteractive, setShowInteractive] = useState(true);
@@ -183,6 +186,16 @@ export default function SeedPage() {
                 <FiCheckCircle className="text-blue-500" />
                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Firebase Cloud</span>
               </div>
+              <div className="h-4 w-px bg-slate-100" />
+              <button 
+                onClick={async () => {
+                  await logout();
+                  router.push("/auth/login");
+                }}
+                className="text-[10px] font-black text-rose-500 uppercase tracking-widest hover:text-rose-600 transition-colors flex items-center gap-2"
+              >
+                Log Out
+              </button>
             </div>
           </div>
 
