@@ -20,7 +20,7 @@ export const useInvoiceActions = (
       // Sertakan informasi kasir dari auth state
       const kasirInfo = user && profile ? { 
         uid: user.uid, 
-        nama: profile.nama || user.displayName || "Kasir" 
+        nama: profile.nama || user.displayName || "AUTHORIZED STAFF" 
       } : undefined;
 
       await prosesPembayaran(tagihan, "tunai", rincian, kasirInfo);

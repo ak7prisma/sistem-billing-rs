@@ -20,6 +20,12 @@ export function useCreateStaff() {
     setSuccess(false);
 
     try {
+      if (!formData.nama.trim()) {
+        setError("Nama Lengkap wajib diisi agar tidak muncul 'Authorized' di struk.");
+        setLoading(false);
+        return;
+      }
+
       await registerStaff(formData.email, formData.password, formData.nama, formData.role);
       setSuccess(true);
       setFormData({ email: "", password: "", nama: "", role: "kasir" });
