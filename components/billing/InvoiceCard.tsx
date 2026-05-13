@@ -3,6 +3,7 @@ import { FiFileText, FiChevronRight, FiSearch } from "react-icons/fi";
 import { Tagihan } from "@/lib/types";
 import StatusBadge from "../ui/StatusBadge";
 import { formatRupiah } from "@/lib/utils/currency";
+import { formatDate } from "@/lib/utils/date";
 
 interface InvoiceCardProps {
   tagihan: Tagihan;
@@ -26,7 +27,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ tagihan, showPayButton, onPay
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{tagihan.id_tagihan}</span>
             </div>
             <h3 className="font-bold text-slate-800 text-lg">{tagihan.poli}</h3>
-            <p className="text-xs text-slate-500">{tagihan.tanggal}</p>
+            <p className="text-xs text-slate-500">{formatDate(tagihan.tanggal)}</p>
           </div>
         </div>
 

@@ -4,6 +4,7 @@ import React from "react";
 import { FiArrowLeft, FiLoader, FiUser, FiCalendar } from "react-icons/fi";
 import { Tagihan } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils/currency";
+import { formatDateTime } from "@/lib/utils/date";
 import BaseModal from "../ui/BaseModal";
 import { useInvoiceData } from "@/lib/hooks/useInvoiceData";
 
@@ -23,15 +24,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, tagihan })
   const totalBpjs = rincian.filter(r => r.is_covered_bpjs).reduce((s, r) => s + (r.subtotal || 0), 0);
   
   // Ambil tanggal dari pembayaran jika ada, jika tidak pakai waktu sekarang
-  const displayDate = pembayaran?.tanggal_pembayaran 
-    ? new Date(pembayaran.tanggal_pembayaran).toLocaleString("id-ID", { 
-        day: '2-digit', 
-        month: 'short', 
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      })
-    : new Date().toLocaleString("id-ID");
+  const displayDate = formatDateTime(pembayaran?.tanggal_pembayaran || new Date());
 
   return (
     <BaseModal

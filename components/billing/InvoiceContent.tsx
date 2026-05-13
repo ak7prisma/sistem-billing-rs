@@ -6,6 +6,8 @@ import { Tagihan, Pasien, RincianTagihan } from "@/lib/types";
 import BillingBreakdown from "./BillingBreakdown";
 import StatusBadge from "../ui/StatusBadge";
 
+import { formatDate } from "@/lib/utils/date";
+
 interface InvoiceContentProps {
   tagihan: Tagihan;
   pasien: Pasien | null;
@@ -36,9 +38,7 @@ const InvoiceContent: React.FC<InvoiceContentProps> = ({ tagihan, pasien, rincia
           <div className="flex flex-col items-end gap-2">
             <StatusBadge status={tagihan.status} />
             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">
-              {tagihan.tanggal?.seconds 
-                ? new Date(tagihan.tanggal.seconds * 1000).toLocaleDateString("id-ID", { day: 'numeric', month: 'long', year: 'numeric' }) 
-                : "N/A"}
+              {formatDate(tagihan.tanggal)}
             </p>
           </div>
         </div>

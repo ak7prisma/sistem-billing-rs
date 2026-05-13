@@ -5,6 +5,7 @@ import { FiPrinter } from "react-icons/fi";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { Tagihan } from "@/lib/types";
 import { formatRupiah } from "@/lib/utils/currency";
+import { formatDate } from "@/lib/utils/date";
 
 interface BillingTableProps {
   data: Tagihan[];
@@ -30,7 +31,7 @@ const BillingTable: React.FC<BillingTableProps> = ({ data, onAction }) => {
             <tr key={item.id_tagihan} className="hover:bg-slate-50/50 transition group">
               <td className="p-6 pl-10 font-black text-slate-800">{item.id_tagihan}</td>
               <td className="p-6 font-bold text-slate-600">{item.poli}</td>
-              <td className="p-6 text-slate-400 font-medium">{item.tanggal}</td>
+              <td className="p-6 text-slate-400 font-medium">{formatDate(item.tanggal)}</td>
               <td className="p-6 font-black text-slate-800">{formatRupiah(item.total_biaya)}</td>
               <td className="p-6 text-center">
                 <StatusBadge status={item.status as any} />
