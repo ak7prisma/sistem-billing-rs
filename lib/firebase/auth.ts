@@ -7,7 +7,7 @@ import {
   User as FirebaseUser,
   getAuth
 } from "firebase/auth";
-import { initializeApp } from "firebase/app";
+import { initializeApp, deleteApp, getApps } from "firebase/app";
 import { auth, db, firebaseConfig } from "./config";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { UserRole } from "../types";
@@ -40,7 +40,7 @@ export const syncUserWithFirestore = async (user: FirebaseUser, customData: any 
 };
 
 export const registerStaff = async (email: string, pass: string, nama: string, role: UserRole) => {
-  const secondaryApp = initializeApp(firebaseConfig, "secondary");
+  const secondaryApp = getApps().find(a => a.name === "secondary") || initializeApp(firebaseConfig, "secondary");
   const secondaryAuth = getAuth(secondaryApp);
 
   try {
@@ -57,11 +57,11 @@ export const registerStaff = async (email: string, pass: string, nama: string, r
       lastLogin: serverTimestamp(),
     });
 
-    await secondaryApp.delete();
+    await deleteApp(secondaryApp);
     return user;
   } catch (error) {
     console.error("Error registerStaff:", error);
-    await secondaryApp.delete();
+    await deleteApp(secondaryApp);
     throw error;
   }
 };

@@ -1,59 +1,30 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import PageHeader from "@/components/ui/PageHeader";
-import { FiUsers, FiSearch, FiEdit2, FiShield, FiCheck, FiX } from "react-icons/fi";
-import { getAllUsers, updateUserRole } from "@/lib/firebase/firestore";
-import { User, UserRole } from "@/lib/types";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { FiSearch, FiEdit2, FiCheck, FiX, FiLoader } from "react-icons/fi";
+import { UserRole } from "@/lib/types";
+import { useUserManagement } from "@/lib/hooks/useUserManagement";
+import RoleBadge from "@/components/ui/RoleBadge";
 
 const ROLES: UserRole[] = ["kasir", "manajer", "admin", "pasien"];
 
 export default function UserManagementPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  const { users, loading, search, setSearch, updateRole } = useUserManagement();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [newRole, setNewRole] = useState<UserRole>("pasien");
-  
-  const { user: currentUser, profile } = useAuth();
-
-  const fetchUsers = async () => {
-    setLoading(true);
-    try {
-      const data = await getAllUsers();
-      setUsers(data);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleUpdateRole = async (uid: string) => {
-    try {
-      const adminInfo = currentUser && profile ? {
-        uid: currentUser.uid,
-        nama: profile.nama || currentUser.displayName || "Admin"
-      } : undefined;
-
-      await updateUserRole(uid, newRole, adminInfo);
+    setIsUpdating(true);
+    const result = await updateRole(uid, newRole);
+    if (result.success) {
       setEditingId(null);
-      fetchUsers();
-    } catch (err) {
-      alert("Gagal mengubah role");
+    } else {
+      alert(result.error);
     }
+    setIsUpdating(false);
   };
-
-  const filteredUsers = users.filter(u => 
-    u.nama.toLowerCase().includes(search.toLowerCase()) || 
-    u.email.toLowerCase().includes(search.toLowerCase()) ||
-    u.role.toLowerCase().includes(search.toLowerCase())
-  );
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -76,7 +47,7 @@ export default function UserManagementPage() {
             />
           </div>
           <div className="flex items-center gap-2">
-             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{filteredUsers.length} User Ditemukan</span>
+             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{users.length} User Ditemukan</span>
           </div>
         </div>
 
@@ -95,12 +66,12 @@ export default function UserManagementPage() {
                 <tr>
                   <td colSpan={4} className="p-20 text-center">
                     <div className="flex flex-col items-center gap-2">
-                       <div className="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                       <FiLoader className="w-10 h-10 text-blue-500 animate-spin" />
                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-4">Memuat Data User...</p>
                     </div>
                   </td>
                 </tr>
-              ) : filteredUsers.map(user => (
+              ) : users.map(user => (
                 <tr key={user.uid} className="hover:bg-slate-50/50 transition group">
                   <td className="p-6 pl-10">
                     <div className="flex flex-col">
@@ -132,14 +103,16 @@ export default function UserManagementPage() {
                     {editingId === user.uid ? (
                       <div className="flex items-center justify-end gap-2">
                         <button 
+                          disabled={isUpdating}
                           onClick={() => handleUpdateRole(user.uid)}
-                          className="p-2.5 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition active:scale-95"
+                          className="p-2.5 bg-emerald-500 text-white rounded-xl shadow-lg shadow-emerald-500/20 hover:bg-emerald-600 transition active:scale-95 disabled:opacity-50"
                         >
-                          <FiCheck size={16} />
+                          {isUpdating ? <FiLoader className="animate-spin" /> : <FiCheck size={16} />}
                         </button>
                         <button 
+                          disabled={isUpdating}
                           onClick={() => setEditingId(null)}
-                          className="p-2.5 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition active:scale-95"
+                          className="p-2.5 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition active:scale-95 disabled:opacity-50"
                         >
                           <FiX size={16} />
                         </button>
@@ -163,22 +136,5 @@ export default function UserManagementPage() {
         </div>
       </div>
     </div>
-  );
-}
-
-function RoleBadge({ role }: { role: UserRole }) {
-  const styles: any = {
-    admin: "bg-slate-900 text-white border-slate-900",
-    manajer: "bg-violet-50 text-violet-600 border-violet-100",
-    kasir: "bg-emerald-50 text-emerald-600 border-emerald-100",
-    pasien: "bg-blue-50 text-blue-600 border-blue-100",
-    developer: "bg-orange-50 text-orange-600 border-orange-100",
-  };
-
-  return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-[0.1em] border ${styles[role] || "bg-slate-50 text-slate-500"}`}>
-      {role === "admin" && <FiShield size={10} />}
-      {role}
-    </span>
   );
 }

@@ -15,11 +15,16 @@ export const useFinancialData = (
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [payData, tagData, rinciData] = await Promise.all([
+      const [payData, tagData, rawRinciData] = await Promise.all([
         getAllPembayaran(),
         getAllTagihan(),
-        getAllData("rinci_tagihan") as Promise<RincianTagihan[]>
+        getAllData("rinci_tagihan")
       ]);
+
+      const rinciData = rawRinciData.map(r => ({
+        ...r,
+        id_rincian: r.id,
+      })) as unknown as RincianTagihan[];
 
       const enrichedTagihans = tagData.map(t => ({
         ...t,

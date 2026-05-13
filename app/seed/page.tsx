@@ -82,6 +82,25 @@ export default function SeedPage() {
       let totalIur = 0;
       let totalCover = 0;
 
+      const isAdminFeeNeeded = !isBpjs;
+      const ADMIN_FEE = 10000;
+
+      if (isAdminFeeNeeded) {
+        totalIur += ADMIN_FEE;
+        const adminRinciId = `RIN-${tagihanId}-ADM`;
+        batch.set(doc(db, "rinci_tagihan", adminRinciId), {
+          id_rincian: adminRinciId,
+          id_tagihan: tagihanId,
+          nama_layanan: "Biaya Administrasi",
+          jenis: "medis",
+          poli: "Pendaftaran",
+          jumlah: 1,
+          subtotal: ADMIN_FEE,
+          is_covered_bpjs: false,
+          tanggal: new Date().toISOString().split('T')[0]
+        });
+      }
+
       // Extract unique polis from medical items
       const uniquePolis = Array.from(new Set(
         cart.filter(item => item.jenis === "medis").map(item => item.poli)
@@ -129,12 +148,15 @@ export default function SeedPage() {
     }
   };
 
+  const isAdminFeeNeeded = selectedPasien?.tipe_penjamin?.toLowerCase() === "umum";
+  const ADMIN_FEE = 10000;
+  
   const totalCart = cart.reduce((sum, item) => sum + (item.harga * item.qty), 0);
   const totalCover = cart.reduce((sum, item) => {
     const covered = selectedPasien?.tipe_penjamin === "bpjs" && item.is_covered_bpjs_master;
     return sum + (covered ? (item.harga * item.qty) : 0);
   }, 0);
-  const totalIur = totalCart - totalCover;
+  const totalIur = (totalCart - totalCover) + (isAdminFeeNeeded ? ADMIN_FEE : 0);
 
   return (
     <RoleGuard allowedRoles={["developer"]}>
@@ -366,7 +388,7 @@ export default function SeedPage() {
                          
                          <div className="space-y-4 flex-1">
                             <div className="flex justify-between items-center text-xs font-bold text-slate-500">
-                               <span>Subtotal</span>
+                               <span>Subtotal Items</span>
                                <span>Rp {totalCart.toLocaleString()}</span>
                             </div>
                             <div className="flex justify-between items-center text-xs font-bold text-emerald-500 bg-emerald-50 p-2 rounded-xl border border-emerald-100">
