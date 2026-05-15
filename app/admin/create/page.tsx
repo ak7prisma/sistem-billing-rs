@@ -100,7 +100,7 @@ export default function CreateUserPage() {
             </div>
             
             <p className="text-center text-[10px] text-slate-400 font-bold uppercase tracking-widest">
-              Akses akun ini dapat dikelola kembali melalui halaman User Management.
+              Akses akun ini dapat dikelola kembali melalui halaman Staff Management.
             </p>
           </form>
         )}

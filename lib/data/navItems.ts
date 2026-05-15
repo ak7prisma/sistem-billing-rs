@@ -21,6 +21,6 @@ export const navItemsPasien = [
 
 export const navItemsAdmin = [
     { label: "Dashboard", href: "/admin", icon: FiSettings },
-    { label: "User Management", href: "/admin/users", icon: FiUsers },
+    { label: "Staff Management", href: "/admin/users", icon: FiUsers },
     { label: "Generate Akun", href: "/admin/create", icon: FiUserPlus },
 ];

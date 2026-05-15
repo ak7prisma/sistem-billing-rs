@@ -40,7 +40,7 @@ export default function UserManagementPage() {
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <PageHeader 
-        title="User Management" 
+        title="Staff Management" 
         subtitle="Kelola akun dan role staff sistem billing"
         badge="Account Controls"
       />
